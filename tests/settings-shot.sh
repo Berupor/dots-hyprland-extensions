@@ -52,7 +52,7 @@ jq -c '.appearance.transparency.enable = false' "$HOME/.config/illogical-impulse
     > "$TMP/config/illogical-impulse/config.json"
 for dir in "$TMP"/config/illogical-impulse/widgets/*/; do
     [ -d "$dir" ] || continue
-    case " $EXTERNAL " in *" $(basename "$dir") "*) ;; *) rm -rf "$dir" ;; esac
+    case " $EXTERNAL " in *" $(basename "$dir") "*) ;; *) rm -rf "${dir%/}" ;; esac
 done
 
 cat > "$TMP/run.sh" <<EOF

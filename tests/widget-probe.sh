@@ -128,7 +128,7 @@ for dir in ${EXTERNAL[@]+"${EXTERNAL[@]}"}; do
     # and two manifests with one id leave the catalog on the installed copy
     id=$(widget_id "$dir")
     for seeded in "$CFG"/illogical-impulse/widgets/*/; do
-        [ -d "$seeded" ] && [ "$(widget_id "$seeded")" = "$id" ] && rm -rf "$seeded"
+        [ -d "$seeded" ] && [ "$(widget_id "$seeded")" = "$id" ] && rm -rf "${seeded%/}"
     done
     # Not cp: an installed widget is a clone, and git's read-only packs break it
     dest="$CFG/illogical-impulse/widgets/$id"
