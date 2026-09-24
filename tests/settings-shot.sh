@@ -44,7 +44,10 @@ sed -i "s/QT_SCALE_FACTOR=1$/QT_SCALE_FACTOR=$SCALE/" "$TMP/ii/settings.qml"
     "$TMP/ii/modules/widgets/WidgetCatalogView.qml"
 
 mkdir -p "$TMP/config" "$TMP/state/quickshell/user/generated"
-cp -r "$HOME/.config/illogical-impulse" "$TMP/config/"
+# Dereferenced: a widget installed as a symlink to its repo would otherwise stay a link,
+# and the rm -rf below would delete the repo through it
+(cd "$HOME/.config" && tar -h --exclude=.git -cf - illogical-impulse) | (cd "$TMP/config" && tar -xf -)
+[ -z "$(find "$TMP/config/illogical-impulse" -type l)" ] || { echo "seeded config still has symlinks: $TMP"; exit 2; }
 cp "$REPO/tests/shot-colors.json" "$TMP/state/quickshell/user/generated/colors.json"
 jq -c --argjson e "$ENABLED" '.errorReports = "never" | .errorReportsTarget = "" | .enabled = $e' \
     "$HOME/.config/illogical-impulse/widgets.json" > "$TMP/config/illogical-impulse/widgets.json"

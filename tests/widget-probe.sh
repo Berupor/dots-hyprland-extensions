@@ -109,7 +109,10 @@ cp "$REPO/tests/harness.qml" "$HARNESS"
 # Throwaway config dir seeded from the real one, so theme and colors match but
 # nothing we write lands in the live config
 CFG=$(mktemp -d /tmp/widget-probe.XXXXXX)
-cp -r "$HOME/.config/illogical-impulse" "$CFG/"
+# Dereferenced: a widget installed as a symlink to its repo would otherwise stay a link,
+# and the rm -rf below would delete the repo through it
+(cd "$HOME/.config" && tar -h --exclude=.git -cf - illogical-impulse) | (cd "$CFG" && tar -xf -)
+[ -z "$(find "$CFG/illogical-impulse" -type l)" ] || { echo "seeded config still has symlinks: $CFG"; exit 2; }
 jq -c --arg w "$WIDGET" --argjson o "$OPTS" --argjson k "$KEYS" --argjson d "$DEFAULTS" \
     '.errorReports = "never" | .errorReportsTarget = "" | . * $k | .enabled = [$w] | .options[$w] = ((if $d == 1 then {} else (.options[$w] // {}) end) * $o)' \
     "$HOME/.config/illogical-impulse/widgets.json" > "$CFG/illogical-impulse/widgets.json"
