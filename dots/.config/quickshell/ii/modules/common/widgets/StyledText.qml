@@ -28,11 +28,6 @@ Text {
         easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve
     }
 
-    Component.onCompleted: {
-        textAnimationBehavior.originalX = root.x;
-        textAnimationBehavior.originalY = root.y;
-    }
-
     Behavior on text {
         id: textAnimationBehavior
         property real originalX: root.x
@@ -41,6 +36,15 @@ Text {
 
         SequentialAnimation {
             alwaysRunToEnd: true
+            ScriptAction {
+                // A layout (Layout.fillHeight, anchors, ...) can reposition root any time
+                // after it settles, so the resting point is read fresh on every change -
+                // not cached once at creation, or the slide would snap back to a stale spot.
+                script: {
+                    textAnimationBehavior.originalX = root.x;
+                    textAnimationBehavior.originalY = root.y;
+                }
+            }
             ParallelAnimation {
                 Anim {
                     property: "x"
