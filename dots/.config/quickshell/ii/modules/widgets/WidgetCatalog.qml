@@ -55,7 +55,7 @@ Singleton {
     }
 
     function isEnabled(widgetId) {
-        return (WidgetsStore.data.enabled ?? []).includes(widgetId)
+        return WidgetsStore.enabled.includes(widgetId)
     }
 
     /// Widgets in a slot, optionally only the ones drawing for a bar orientation
