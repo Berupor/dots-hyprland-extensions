@@ -77,11 +77,31 @@ QtObject {
         return root.slots[slot]?.orientations ?? ["horizontal"]
     }
 
+    // Reassigned only when this widget's own options change: a binding reading
+    // WidgetsStore.data would re-run on every other widget's write, and one that
+    // computes `slots` from options would make every slot host rebuild its content
+    property var storedOptions: ({})
+
+    function syncStoredOptions() {
+        const next = WidgetsStore.data.options?.[root.widgetId] ?? {}
+        if (JSON.stringify(next) !== JSON.stringify(root.storedOptions))
+            root.storedOptions = next
+    }
+
     /// Stored option value, or the schema default. The only place a default is read
     function optionValue(key) {
-        const stored = WidgetsStore.data.options?.[root.widgetId]?.[key]
+        const stored = root.storedOptions[key]
         return stored !== undefined ? stored : root.options.find(o => o.key === key)?.default
     }
+
+    property Connections storeWatch: Connections {
+        target: WidgetsStore
+        function onDataChanged() {
+            root.syncStoredOptions()
+        }
+    }
+
+    Component.onCompleted: syncStoredOptions()
 
     property Process depsCheck: Process {
         running: root.dependencies.length > 0

@@ -12,6 +12,9 @@ Singleton {
     id: root
     property list<QtObject> widgets: []
     property list<string> brokenViews: []
+    // Keyed by "slot:orientation", so a write to one widget's options doesn't hand every
+    // reader (sidebar tabs included) a new array and make them rebuild their content
+    property var _slotCache: ({})
     readonly property string externalDir: `${Directories.shellConfig}/widgets`
 
     /// Version of the widget contract, not of the shell: minor up when it grows
@@ -58,10 +61,18 @@ Singleton {
         return WidgetsStore.enabled.includes(widgetId)
     }
 
-    /// Widgets in a slot, optionally only the ones drawing for a bar orientation
+    /// Widgets in a slot, optionally only the ones drawing for a bar orientation. Stable
+    /// across calls when the resulting list is the same, so an unrelated option write
+    /// elsewhere doesn't hand every reader a fresh array and make it rebuild its content
     function forSlot(slot, orientation) {
-        return widgets.filter(w => w.slots[slot] !== undefined && w.usable && isEnabled(w.widgetId)
+        const list = widgets.filter(w => w.slots[slot] !== undefined && w.usable && isEnabled(w.widgetId)
             && (!orientation || w.slotOrientations(slot).includes(orientation)))
+        const key = `${slot}:${orientation ?? ""}`
+        const cached = root._slotCache[key]
+        if (cached && cached.length === list.length && cached.every((w, i) => w === list[i]))
+            return cached
+        root._slotCache[key] = list
+        return list
     }
 
     /// A widget runs on the contract it was built for: same major, not from the future
