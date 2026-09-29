@@ -87,7 +87,11 @@ Singleton {
             d="$IW/$IN"
             v() { sed -n 's/^[[:space:]]*version:[[:space:]]*"\\([^"]*\\)".*/\\1/p' "$d/Manifest.qml" | head -1; }
             was=$(git -C "$d" rev-parse HEAD)
-            out=$(git -C "$d" pull --ff-only 2>&1) || { echo "$out" | tail -1; exit 1; }
+            if [ -n "$(git -C "$d" status --porcelain --untracked-files=no)" ]; then
+                echo "Files in $d were edited by hand and block the update. Discard the edits with: git -C $d checkout ."
+                exit 1
+            fi
+            out=$(git -C "$d" pull --ff-only 2>&1) || { echo "$out" | grep -m1 -E '^(error|fatal)' || echo "$out" | tail -1; exit 1; }
             [ "$was" = "$(git -C "$d" rev-parse HEAD)" ] && { echo "$out" | tail -1; exit 0; }
             now=$(v) # The prefix asks for a reload, see needsReload
             echo "reload:Updated\${now:+ to $now}"`]);
