@@ -159,6 +159,7 @@ cat > "$CFG/run.sh" <<EOF
 export XDG_CONFIG_HOME="$CFG"
 export XDG_CACHE_HOME="$CFG/cache" # A run that caches must not read the last one's, nor the user's
 ${STATE:+export XDG_STATE_HOME="$STATE"}
+${FRESENCE_REPO:+export FRESENCE_REPO="$FRESENCE_REPO"} # The fresence widget's shared fixtures live in that repo; hyprctl exec does not carry our environment
 $SCALE
 export QS_HARNESS_WIDGET="$WIDGET" QS_HARNESS_SLOT="$SLOT" QS_HARNESS_FILE="$FILE"
 export QS_HARNESS_OUT="$OUT" QS_HARNESS_SETTLE="$SETTLE"
