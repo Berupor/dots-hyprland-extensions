@@ -44,7 +44,14 @@ StyledImage {
     property int _retries: 0
     readonly property int maxRetries: 5
 
-    function show(): void {
+    readonly property int generatedExitCode: 2
+
+    // A file that was already there loads by its bare path, so a recreated widget hits Qt's cache
+    function show(alreadyThere: bool): void {
+        if (alreadyThere) {
+            root.source = root.thumbnailPath;
+            return;
+        }
         root._generation += 1;
         root.source = `${root.thumbnailPath}#${root._generation}`;
     }
@@ -57,7 +64,7 @@ StyledImage {
             return;
         }
         if (!root.generateThumbnail) {
-            root.show();
+            root.show(false);
             return;
         }
         const maxSize = Images.thumbnailSizes[root.thumbnailSizeName];
@@ -65,7 +72,7 @@ StyledImage {
         thumbnailGeneration.running = false;
         // Via a temp file: whoever catches a half-written png caches the decode error
         thumbnailGeneration.command = ["bash", "-c",
-            `[ -f '${dest}' ] || { mkdir -p "$(dirname '${dest}')" && magick '${root.sourcePath}' -resize ${maxSize}x${maxSize} png:'${dest}.$$' && mv -f '${dest}.$$' '${dest}'; } || { rm -f '${dest}.$$'; exit 1; }`
+            `[ -f '${dest}' ] || { mkdir -p "$(dirname '${dest}')" && magick '${root.sourcePath}' -resize ${maxSize}x${maxSize} png:'${dest}.$$' && mv -f '${dest}.$$' '${dest}' && exit ${root.generatedExitCode}; } || { rm -f '${dest}.$$'; exit 1; }`
         ];
         thumbnailGeneration.running = true;
     }
@@ -75,8 +82,8 @@ StyledImage {
         onExited: (exitCode, exitStatus) => {
             if (exitStatus !== 0) // Killed by a path change, which started its own run
                 return;
-            if (exitCode === 0) {
-                root.show();
+            if (exitCode === 0 || exitCode === root.generatedExitCode) {
+                root.show(exitCode === 0);
             } else if (root._retries < root.maxRetries) { // Source may not be on disk yet
                 root._retries += 1;
                 retryTimer.restart();
