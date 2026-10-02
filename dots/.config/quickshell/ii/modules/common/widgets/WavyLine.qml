@@ -11,7 +11,11 @@ Canvas {
 
     onPaint: {
         var ctx = getContext("2d");
-        ctx.clearRect(0, 0, width, height);
+        // Context2D only forwards lineWidth to the painter when the assigned value differs from
+        // the one it already holds, so a single dropped command buffer (the canvas being resized
+        // or reparented mid-paint) leaves the texture stroking with the default 1px pen for good.
+        // Resetting first makes every frame re-send the whole pen state, thin line included.
+        ctx.reset();
 
         var amplitude = root.lineWidth * root.amplitudeMultiplier;
         var frequency = root.frequency;
