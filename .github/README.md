@@ -68,9 +68,6 @@ Every widget below has its own pictures and options:
   plugged in as a USB webcam, and the adb call that puts it in that mode.
 - [KDE Connect](https://github.com/Berupor/ii-widget-kdeconnect): the phone's charge
   by the color of a bar button, and ring, clipboard and files from its menu.
-- [Fresence](https://github.com/Berupor/ii-widget-fresence): a room of
-  friends on the desktop, client for
-  [fresence](https://github.com/Berupor/fresence).
 - [VPN](https://github.com/Berupor/ii-widget-vpn): NetworkManager profiles and
   tailscale exit nodes, from a button in the bar.
 - [Hello](https://github.com/Berupor/ii-widget-hello): the template to copy when

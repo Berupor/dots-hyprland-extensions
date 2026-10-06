@@ -24,7 +24,7 @@
 #   barIndicator -n quiet -o incognito=true -g 150x44
 #   barIndicator -n vertical -p vertical=true -H vbar -g 46x120
 #   sidebarLeftTab -g 420x560
-#   -f FresenceSettings.qml -g 460x520
+#   -f ExtraSettings.qml -g 460x520
 #
 # So a widget repo carrying shots.txt regenerates its README images with one
 # command, and gets the same images on any machine.
