@@ -25,6 +25,7 @@ to render, which lands inside the card so it wants `ContentSubsection`, not
 | `barGauge`         | 1.3   | -               | Resource-circle style: icon plus a number, next to CPU/RAM in the bar.                                             |
 | `barUtilButton`    | 1.0   | -               | Bar utility button. Horizontal bar only - the vertical one has no utility group.                                   |
 | `backgroundWidget` | 1.0   | -               | Desktop background layer, stays loaded while enabled - gate side effects on your own option.                       |
+| `screenOverlay`    | 1.4   | -               | Click-through layer above windows, loaded once per screen and handed `screen`. Mapped only while an item's `shown` is true; size to `screen.width` x `screen.height`. |
 | `catalogView`      | 1.0   | -               | Replaces the whole Widgets settings page.                                                                          |
 | `settingsView`     | 1.0   | -               | Replaces the whole settings window, titlebar included.                                                             |
 | `regionAction`     | 1.0   | `name`          | Offered during region selection (ipc `region widget <name>`). Exposes `available` and `perform(path, x, y, w, h)`. |
@@ -50,7 +51,7 @@ major up when it breaks. A widget's `minShellVersion` has to match the same
 major and be no newer than the shell's, or its card shows "Built for shell X,
 this is Y" and it does not load. 1.0 is the baseline; 1.1 added `textField`;
 1.2 added `orientations` for the vertical bar; 1.3 added `barGauge` and
-`WidgetSlot.spacingBefore`.
+`WidgetSlot.spacingBefore`; 1.4 added `screenOverlay`.
 
 ## External widgets
 

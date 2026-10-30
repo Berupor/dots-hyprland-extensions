@@ -13,7 +13,8 @@ WidgetManifest {
     slots: ({
         "barIndicator": { "path": "HelloIndicator.qml", "orientations": ["horizontal", "vertical"] },
         "sidebarLeftTab": { "path": "HelloTab.qml", "icon": "waving_hand", "name": Translation.tr("Hello") },
-        "regionAction": { "path": "HelloAction.qml", "name": "hello" }
+        "regionAction": { "path": "HelloAction.qml", "name": "hello" },
+        "screenOverlay": "HelloOverlay.qml"
     })
     options: [
         {

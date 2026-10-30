@@ -24,6 +24,7 @@ CatalogCard {
         "sidebarLeftTab": Translation.tr("Left sidebar"),
         "sidebarRightTab": Translation.tr("Right sidebar"),
         "backgroundWidget": Translation.tr("Wallpaper"),
+        "screenOverlay": Translation.tr("Over windows"),
         "regionAction": Translation.tr("Region selector"),
         "catalogView": Translation.tr("This page"),
         "settingsView": Translation.tr("Settings window")
