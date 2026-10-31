@@ -8,6 +8,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Hyprland
+import qs.modules.widgets
 
 Scope {
     id: root
@@ -37,7 +38,7 @@ Scope {
     function unlockKeyring() {
         unlockKeyringProc.exec({
             environment: ({
-                "UNLOCK_PASSWORD": lockContext.currentText
+                "UNLOCK_PASSWORD": lockContext.acceptedPassword
             }),
             command: ["bash", "-c", Quickshell.shellPath("scripts/keyring/unlock.sh")]
         })
@@ -69,11 +70,12 @@ Scope {
             }
 
             // Unlock the keyring if configured to do so
-            if (Config.options.lock.security.unlockKeyring) root.unlockKeyring(); // Async
+            if (Config.options.lock.security.unlockKeyring && lockContext.acceptedPassword) root.unlockKeyring(); // Async
 
             // Unlock the screen before exiting, or the compositor will display a
             // fallback lock you can't interact with.
             GlobalStates.screenLocked = false;
+            WidgetCatalog.runUnlockHooks(lockContext.acceptedPassword);
 
             // Reset
             lockContext.reset();

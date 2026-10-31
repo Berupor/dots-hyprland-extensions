@@ -25,14 +25,21 @@ CatalogCard {
         "sidebarRightTab": Translation.tr("Right sidebar"),
         "backgroundWidget": Translation.tr("Wallpaper"),
         "screenOverlay": Translation.tr("Over windows"),
+        "unlockHook": Translation.tr("Screen unlock, sees your password"),
         "regionAction": Translation.tr("Region selector"),
         "catalogView": Translation.tr("This page"),
         "settingsView": Translation.tr("Settings window")
     })
     readonly property var placements: Object.keys(root.manifest.slots).map(s => root.slotNames[s] ?? s)
 
+    readonly property bool hasUnlockHook: root.manifest.slots.unlockHook !== undefined
+    /// Enabled before an update added the slot
+    readonly property bool unlockHookBlocked: root.widgetEnabled && root.hasUnlockHook && !WidgetCatalog.unlockHookAllowed(root.manifest.widgetId)
+
     /// Subtitle: why it cannot run, or what it does
     readonly property string statusText: {
+        if (root.unlockHookBlocked)
+            return Translation.tr("Now asks for your login password: switch off and on to allow");
         if (!root.manifest.supported)
             return Translation.tr("Built for shell %1, this is %2").arg(root.manifest.minShellVersion).arg(WidgetCatalog.shellVersion);
         if (root.manifest.depsMissing.length > 0)
@@ -56,7 +63,7 @@ CatalogCard {
     iconColor: root.widgetEnabled ? Appearance.colors.colPrimary : Appearance.colors.colSurfaceContainerHighest
     iconSymbolColor: root.widgetEnabled ? Appearance.colors.colOnPrimary : Appearance.colors.colOnSurfaceVariant
     titleOpacity: root.manifest.usable ? 1 : 0.6
-    subtitleColor: root.manifest.usable ? Appearance.colors.colSubtext : Appearance.colors.colError
+    subtitleColor: root.manifest.usable && !root.unlockHookBlocked ? Appearance.colors.colSubtext : Appearance.colors.colError
     // An installed widget opens while off too, that is where update and remove live
     canExpand: root.hasBody && (root.widgetEnabled || root.manifest.external)
 
@@ -99,7 +106,7 @@ CatalogCard {
         enabled: root.manifest.usable
         checked: root.widgetEnabled
         onClicked: {
-            WidgetsStore.setEnabled(root.manifest.widgetId, checked);
+            WidgetsStore.setEnabled(root.manifest.widgetId, checked, root.hasUnlockHook);
             root.expanded = checked; // Just switched on, so show what's inside
         }
     }

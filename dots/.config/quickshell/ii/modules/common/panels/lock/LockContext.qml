@@ -22,6 +22,7 @@ Scope {
     property bool fingerprintsConfigured: false
     property var targetAction: LockContext.ActionEnum.Unlock
     property bool alsoInhibitIdle: false
+    property string acceptedPassword: "" // Set by the password path only, a fingerprint leaves it empty
 
     function resetTargetAction() {
         root.targetAction = LockContext.ActionEnum.Unlock;
@@ -38,6 +39,7 @@ Scope {
     function reset() {
         root.resetTargetAction();
         root.clearText();
+        root.acceptedPassword = "";
         root.unlockInProgress = false;
         stopFingerPam();
     }
@@ -108,6 +110,7 @@ Scope {
         // pam_unix won't send any important messages so all we need is the completion status.
         onCompleted: result => {
             if (result == PamResult.Success) {
+                root.acceptedPassword = root.currentText;
                 root.unlocked(root.targetAction);
                 stopFingerPam();
             } else {

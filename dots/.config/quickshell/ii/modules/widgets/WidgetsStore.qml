@@ -20,10 +20,13 @@ Singleton {
             root.enabled = next
     }
 
-    function setEnabled(widgetId, on) {
+    /// `allowUnlockHook`: the user saw the unlockHook slot when switching it on
+    function setEnabled(widgetId, on, allowUnlockHook = false) {
         const enabled = (data.enabled ?? []).filter(x => x !== widgetId)
         if (on) enabled.push(widgetId)
-        root.data = Object.assign({}, data, { "enabled": enabled })
+        const allowed = (data.unlockHookAllowed ?? []).filter(x => x !== widgetId)
+        if (on && allowUnlockHook) allowed.push(widgetId)
+        root.data = Object.assign({}, data, { "enabled": enabled, "unlockHookAllowed": allowed })
         syncEnabled()
         save()
     }

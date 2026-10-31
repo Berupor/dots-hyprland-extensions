@@ -19,7 +19,7 @@ Singleton {
 
     /// Version of the widget contract, not of the shell: minor up when it grows
     /// (a slot, a manifest property, an option type), major up when it breaks
-    readonly property string shellVersion: "1.4"
+    readonly property string shellVersion: "1.5"
 
     /// Known slots and the fields their entry needs beyond `path`. A bare-path
     /// entry is only valid when the list is empty
@@ -29,6 +29,7 @@ Singleton {
         "barUtilButton": [],
         "backgroundWidget": [],
         "screenOverlay": [],
+        "unlockHook": [],
         "catalogView": [],
         "settingsView": [],
         "regionAction": ["name"],
@@ -123,6 +124,27 @@ Singleton {
         return action?.available ? action : null
     }
 
+    /// Switched on while the manifest already had the slot, so an update can't add it silently
+    function unlockHookAllowed(widgetId) {
+        return (WidgetsStore.data.unlockHookAllowed ?? []).includes(widgetId)
+    }
+
+    /// Hands the accepted login password to each unlockHook once, empty on fingerprint
+    function runUnlockHooks(password) {
+        if (!password) return
+        for (const manifest of root.forSlot("unlockHook").filter(w => root.unlockHookAllowed(w.widgetId))) {
+            let hook = null
+            try {
+                hook = root.build(manifest, manifest.resolve(manifest.slotPath("unlockHook")))
+                hook?.unlocked(password)
+            } catch (e) {
+                // The message may carry the password, and reports leave the machine
+                ErrorReporter.report(manifest.widgetId, `unlockHook threw ${e.name} at line ${e.lineNumber}`)
+            }
+            hook?.destroy()
+        }
+    }
+
     // A view that won't load can't be switched off from itself
     function dropView(widgetId, url) {
         ErrorReporter.report(widgetId, `${url} failed to load`)
@@ -143,6 +165,12 @@ Singleton {
             }
             const manifest = component.createObject(root, { "dir": dir, "external": external })
             if (!manifest) return
+            // The installer names the folder by id, so a mismatch is a manifest lying about it
+            if (external && manifest.widgetId !== name) {
+                ErrorReporter.report(name, `folder ${name} holds widget id ${manifest.widgetId}`)
+                manifest.destroy()
+                return
+            }
             if (found.some(w => w.widgetId === manifest.widgetId)) {
                 ErrorReporter.report(name, `duplicate widget id ${manifest.widgetId}`)
                 return

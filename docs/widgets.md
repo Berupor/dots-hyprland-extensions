@@ -26,6 +26,7 @@ to render, which lands inside the card so it wants `ContentSubsection`, not
 | `barUtilButton`    | 1.0   | -               | Bar utility button. Horizontal bar only - the vertical one has no utility group.                                   |
 | `backgroundWidget` | 1.0   | -               | Desktop background layer, stays loaded while enabled - gate side effects on your own option.                       |
 | `screenOverlay`    | 1.4   | -               | Click-through layer above windows, loaded once per screen and handed `screen`. Mapped only while an item's `shown` is true; size to `screen.width` x `screen.height`. |
+| `unlockHook`       | 1.5   | -               | Runs once per password unlock of the lock screen: `unlocked(password)` gets the login password PAM accepted, then the object is destroyed, so hand the work to something that outlives it (a singleton of your own, `Quickshell.execDetached`). Skipped on fingerprint unlock, and for a widget enabled before an update added the slot until it is switched off and on. |
 | `catalogView`      | 1.0   | -               | Replaces the whole Widgets settings page.                                                                          |
 | `settingsView`     | 1.0   | -               | Replaces the whole settings window, titlebar included.                                                             |
 | `regionAction`     | 1.0   | `name`          | Offered during region selection (ipc `region widget <name>`). Exposes `available` and `perform(path, x, y, w, h)`. |
@@ -51,11 +52,11 @@ major up when it breaks. A widget's `minShellVersion` has to match the same
 major and be no newer than the shell's, or its card shows "Built for shell X,
 this is Y" and it does not load. 1.0 is the baseline; 1.1 added `textField`;
 1.2 added `orientations` for the vertical bar; 1.3 added `barGauge` and
-`WidgetSlot.spacingBefore`; 1.4 added `screenOverlay`.
+`WidgetSlot.spacingBefore`; 1.4 added `screenOverlay`; 1.5 added `unlockHook`.
 
 ## External widgets
 
-Installed at `~/.config/illogical-impulse/widgets/<id>/`, outside the shell
+Installed at `~/.config/illogical-impulse/widgets/<id>/` (the folder name has to match `widgetId`), outside the shell
 tree, by pasting a git url on the Widgets page. Same contract as a bundled
 widget, two differences: its own singletons need a `qmldir` next to them
 (`singleton Foo 1.0 Foo.qml`), and it cannot `import` its own directory as a

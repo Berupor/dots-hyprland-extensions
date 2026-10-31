@@ -24,11 +24,14 @@ import Quickshell.Io
  * 5. `settingsPage` renders inside the widget's card on the Widgets page: group with
  *    ContentSubsection, ContentSection is the host's altitude
  * 6. `backgroundWidget` builds on AbstractBackgroundWidget and stays loaded, so gate it
- *    on its own option; `regionAction` exposes `available` and perform(path, x, y, w, h)
+ *    on its own option; `regionAction` exposes `available` and perform(path, x, y, w, h);
+ *    `unlockHook` exposes unlocked(password), called once per unlock and destroyed right
+ *    after, so it hands the work to something that outlives it; runs only if the user
+ *    switched the widget on while the slot was there
  * 7. `minShellVersion` is the contract you built against (WidgetCatalog.shellVersion).
  *    A widget asking for a newer one, or for another major, is shown but not loaded.
  *    Bump your own `version` on every release: the updater reports it
- * A widget can also be installed as ~/.config/illogical-impulse/widgets/<id>/, outside
+ * A widget can also be installed as ~/.config/illogical-impulse/widgets/<id>/ (folder named by id), outside
  * the shell tree, and gets marked as such in the catalog. Same contract, two extras:
  * its own singletons need a `qmldir` next to them (`singleton Foo 1.0 Foo.qml`), and it
  * cannot import its own directory as a module. Working ones: tests/fixtures/hello here,
