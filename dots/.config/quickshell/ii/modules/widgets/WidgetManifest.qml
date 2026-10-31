@@ -27,7 +27,9 @@ import Quickshell.Io
  *    on its own option; `regionAction` exposes `available` and perform(path, x, y, w, h);
  *    `unlockHook` exposes unlocked(password), called once per unlock and destroyed right
  *    after, so it hands the work to something that outlives it; runs only if the user
- *    switched the widget on while the slot was there
+ *    switched the widget on while the slot was there; `searchFilter` exposes
+ *    filter(result), seeing each overview search result (a LauncherSearchResult, clipboard
+ *    entries carry `rawValue`) before it is drawn: false drops it, `secret` masks its text
  * 7. `minShellVersion` is the contract you built against (WidgetCatalog.shellVersion).
  *    A widget asking for a newer one, or for another major, is shown but not loaded.
  *    Bump your own `version` on every release: the updater reports it

@@ -34,7 +34,8 @@ RippleButton {
     property string materialSymbol: entry.iconType === LauncherSearchResult.IconType.Material ? entry?.iconName ?? "" : ""
     property string cliphistRawString: entry?.rawValue ?? ""
     property bool blurImage: entry?.blurImage ?? false
-    
+    property bool secret: entry?.secret ?? false
+
     visible: root.entryShown
     property int horizontalMargin: 10
     property int buttonHorizontalPadding: 10
@@ -210,7 +211,7 @@ RippleButton {
                     }
                 }
                 Repeater { // Favicons for links
-                    model: root.query == root.itemName ? [] : root.urls
+                    model: root.query == root.itemName || root.secret ? [] : root.urls
                     Favicon {
                         required property var modelData
                         size: parent.height
@@ -226,7 +227,7 @@ RippleButton {
                     color: root.colForeground
                     horizontalAlignment: Text.AlignLeft
                     elide: Text.ElideRight
-                    text: root.selected ? StringUtils.escapeHtml(root.itemName) : root.displayContent
+                    text: root.secret ? "•".repeat(12) : root.selected ? StringUtils.escapeHtml(root.itemName) : root.displayContent
                 }
             }
             Loader { // Clipboard image preview

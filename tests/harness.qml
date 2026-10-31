@@ -10,6 +10,7 @@ import qs.modules.common
 import qs.modules.common.widgets
 import qs.modules.ii.bar
 import qs.modules.ii.background.widgets
+import qs.modules.ii.overview
 import qs.modules.widgets
 import qs.services
 import QtQuick

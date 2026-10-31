@@ -15,7 +15,8 @@ WidgetManifest {
         "sidebarLeftTab": { "path": "HelloTab.qml", "icon": "waving_hand", "name": Translation.tr("Hello") },
         "regionAction": { "path": "HelloAction.qml", "name": "hello" },
         "screenOverlay": "HelloOverlay.qml",
-        "unlockHook": "HelloUnlock.qml"
+        "unlockHook": "HelloUnlock.qml",
+        "searchFilter": "HelloFilter.qml"
     })
     options: [
         {

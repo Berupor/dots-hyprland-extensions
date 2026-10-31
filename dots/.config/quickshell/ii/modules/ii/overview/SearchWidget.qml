@@ -11,6 +11,7 @@ import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
 import qs.modules.common.functions
+import qs.modules.widgets
 
 Item { // Wrapper
     id: root
@@ -187,14 +188,14 @@ Item { // Wrapper
                     id: debounceTimer
                     interval: root.typingDebounceInterval
                     onTriggered: {
-                        resultModel.values = LauncherSearch.results ?? [];
+                        resultModel.values = WidgetCatalog.filterSearchResults(LauncherSearch.results ?? []);
                     }
                 }
 
                 Connections {
                     target: LauncherSearch
                     function onResultsChanged() {
-                        resultModel.values = LauncherSearch.results.slice(0, root.typingResultLimit);
+                        resultModel.values = WidgetCatalog.filterSearchResults(LauncherSearch.results).slice(0, root.typingResultLimit);
                         root.focusFirstItem();
                         debounceTimer.restart();
                     }
@@ -216,7 +217,7 @@ Item { // Wrapper
 
                     Keys.onPressed: event => {
                         if (event.key === Qt.Key_Tab) {
-                            if (LauncherSearch.results.length === 0)
+                            if (LauncherSearch.results.length === 0 || searchItem.modelData.secret)
                                 return;
                             const tabbedText = searchItem.modelData.name;
                             LauncherSearch.query = tabbedText;

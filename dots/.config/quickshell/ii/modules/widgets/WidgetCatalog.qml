@@ -19,7 +19,7 @@ Singleton {
 
     /// Version of the widget contract, not of the shell: minor up when it grows
     /// (a slot, a manifest property, an option type), major up when it breaks
-    readonly property string shellVersion: "1.6"
+    readonly property string shellVersion: "1.7"
 
     /// Known slots and the fields their entry needs beyond `path`. A bare-path
     /// entry is only valid when the list is empty
@@ -30,6 +30,7 @@ Singleton {
         "backgroundWidget": [],
         "screenOverlay": [],
         "unlockHook": [],
+        "searchFilter": [],
         "catalogView": [],
         "settingsView": [],
         "calendarView": [],
@@ -143,6 +144,29 @@ Singleton {
                 ErrorReporter.report(manifest.widgetId, `unlockHook threw ${e.name} at line ${e.lineNumber}`)
             }
             hook?.destroy()
+        }
+    }
+
+    /// Results every searchFilter lets through, some of them marked `secret` on the way
+    function filterSearchResults(results) {
+        return results.filter(result => searchFilters.instances.every(host => {
+            try {
+                return host.filter?.filter(result) !== false
+            } catch (e) {
+                // The message may carry the result text, and reports leave the machine
+                ErrorReporter.report(host.modelData.widgetId, `searchFilter threw ${e.name} at line ${e.lineNumber}`)
+                return true
+            }
+        }))
+    }
+
+    Variants {
+        id: searchFilters
+        model: root.forSlot("searchFilter")
+        delegate: QtObject {
+            id: host
+            required property var modelData
+            property QtObject filter: root.build(host.modelData, host.modelData.resolve(host.modelData.slotPath("searchFilter")), host)
         }
     }
 
