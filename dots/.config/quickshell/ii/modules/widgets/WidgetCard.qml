@@ -28,7 +28,8 @@ CatalogCard {
         "unlockHook": Translation.tr("Screen unlock, sees your password"),
         "regionAction": Translation.tr("Region selector"),
         "catalogView": Translation.tr("This page"),
-        "settingsView": Translation.tr("Settings window")
+        "settingsView": Translation.tr("Settings window"),
+        "calendarView": Translation.tr("Sidebar calendar")
     })
     readonly property var placements: Object.keys(root.manifest.slots).map(s => root.slotNames[s] ?? s)
 

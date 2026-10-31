@@ -24,7 +24,7 @@ Rectangle {
             "type": "calendar",
             "name": Translation.tr("Calendar"),
             "icon": "calendar_month",
-            "widget": "calendar/CalendarWidget.qml"
+            "widget": "calendar/CalendarTab.qml"
         },
         {
             "type": "todo",

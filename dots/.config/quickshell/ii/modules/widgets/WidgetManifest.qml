@@ -38,7 +38,7 @@ import Quickshell.Io
  * github.com/Berupor/ii-widget-hello to copy from.
  * View slots take over a host screen instead of adding to it: `catalogView` replaces the
  * Widgets page (built-in one: WidgetCatalogView), `settingsView` the whole settings
- * window, titlebar included. Disable the widget to get the built-in view back.
+ * window, titlebar included, `calendarView` the sidebar Calendar tab. Disable the widget to get the built-in view back.
  * Build from the design system only: Appearance.* colors and fonts,
  * MaterialSymbol, widgets from modules/common/widgets/.
  */
