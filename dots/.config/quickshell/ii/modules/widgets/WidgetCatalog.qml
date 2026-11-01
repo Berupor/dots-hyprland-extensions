@@ -19,7 +19,7 @@ Singleton {
 
     /// Version of the widget contract, not of the shell: minor up when it grows
     /// (a slot, a manifest property, an option type), major up when it breaks
-    readonly property string shellVersion: "1.7"
+    readonly property string shellVersion: "1.8"
 
     /// Known slots and the fields their entry needs beyond `path`. A bare-path
     /// entry is only valid when the list is empty
@@ -31,6 +31,7 @@ Singleton {
         "screenOverlay": [],
         "unlockHook": [],
         "searchFilter": [],
+        "service": [],
         "catalogView": [],
         "settingsView": [],
         "calendarView": [],
@@ -167,6 +168,17 @@ Singleton {
             id: host
             required property var modelData
             property QtObject filter: root.build(host.modelData, host.modelData.resolve(host.modelData.slotPath("searchFilter")), host)
+        }
+    }
+
+    Variants {
+        model: root.forSlot("service")
+        delegate: QtObject {
+            id: host
+            required property var modelData
+            property QtObject service
+            // Not a binding: whatever the service reads while it is built would rebuild it
+            Component.onCompleted: host.service = root.build(host.modelData, host.modelData.resolve(host.modelData.slotPath("service")), host)
         }
     }
 

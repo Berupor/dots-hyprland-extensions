@@ -5,4 +5,5 @@ import QtQuick
 QtObject {
     readonly property string greeting: "Hello"
     property list<string> unlocks: []
+    property int services: 0
 }

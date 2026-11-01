@@ -27,6 +27,7 @@ CatalogCard {
         "screenOverlay": Translation.tr("Over windows"),
         "unlockHook": Translation.tr("Screen unlock, sees your password"),
         "searchFilter": Translation.tr("Search results, sees your clipboard"),
+        "service": Translation.tr("In the background"),
         "regionAction": Translation.tr("Region selector"),
         "catalogView": Translation.tr("This page"),
         "settingsView": Translation.tr("Settings window"),

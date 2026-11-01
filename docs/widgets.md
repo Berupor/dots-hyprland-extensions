@@ -28,6 +28,7 @@ to render, which lands inside the card so it wants `ContentSubsection`, not
 | `screenOverlay`    | 1.4   | -               | Click-through layer above windows, loaded once per screen and handed `screen`. Mapped only while an item's `shown` is true; size to `screen.width` x `screen.height`. |
 | `unlockHook`       | 1.5   | -               | Runs once per password unlock of the lock screen: `unlocked(password)` gets the login password PAM accepted, then the object is destroyed, so hand the work to something that outlives it (a singleton of your own, `Quickshell.execDetached`). Skipped on fingerprint unlock, and for a widget enabled before an update added the slot until it is switched off and on. |
 | `searchFilter`     | 1.7   | -               | Stays loaded, `filter(result)` sees each overview search result before it is drawn. Returning `false` drops it; setting `secret` masks its text and keeps Tab from pasting it into the search field. Clipboard entries carry `rawValue`. |
+| `service`          | 1.8   | -               | Non-visual object, built once and kept while the widget is enabled, destroyed when it is switched off. The place for an `IpcHandler`, a `Timer` or a `Process` that runs without a drawn surface. |
 | `catalogView`      | 1.0   | -               | Replaces the whole Widgets settings page.                                                                          |
 | `settingsView`     | 1.0   | -               | Replaces the whole settings window, titlebar included.                                                             |
 | `calendarView`     | 1.6   | -               | Replaces the Calendar tab of the right sidebar's bottom group, about 354x350.                                      |
@@ -54,7 +55,7 @@ major up when it breaks. A widget's `minShellVersion` has to match the same
 major and be no newer than the shell's, or its card shows "Built for shell X,
 this is Y" and it does not load. 1.0 is the baseline; 1.1 added `textField`;
 1.2 added `orientations` for the vertical bar; 1.3 added `barGauge` and
-`WidgetSlot.spacingBefore`; 1.4 added `screenOverlay`; 1.5 added `unlockHook`; 1.6 added `calendarView`; 1.7 added `searchFilter`.
+`WidgetSlot.spacingBefore`; 1.4 added `screenOverlay`; 1.5 added `unlockHook`; 1.6 added `calendarView`; 1.7 added `searchFilter`; 1.8 added `service`.
 
 ## External widgets
 

@@ -13,6 +13,7 @@ Item {
     readonly property bool badge: WidgetCatalog.option("hello", "badge") ?? false
     readonly property string greeting: HelloState.greeting
     readonly property list<string> unlocks: HelloState.unlocks
+    readonly property int services: HelloState.services
     readonly property real barThickness: root.vertical ? Appearance.sizes.verticalBarWidth : Appearance.sizes.barHeight
     implicitWidth: root.vertical ? root.barThickness : layout.implicitWidth
     implicitHeight: root.vertical ? layout.implicitHeight : root.barThickness

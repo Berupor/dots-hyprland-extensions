@@ -16,7 +16,8 @@ WidgetManifest {
         "regionAction": { "path": "HelloAction.qml", "name": "hello" },
         "screenOverlay": "HelloOverlay.qml",
         "unlockHook": "HelloUnlock.qml",
-        "searchFilter": "HelloFilter.qml"
+        "searchFilter": "HelloFilter.qml",
+        "service": "HelloService.qml"
     })
     options: [
         {
