@@ -17,7 +17,8 @@ WidgetManifest {
         "screenOverlay": "HelloOverlay.qml",
         "unlockHook": "HelloUnlock.qml",
         "searchFilter": "HelloFilter.qml",
-        "service": "HelloService.qml"
+        "service": "HelloService.qml",
+        "barView": "HelloBar.qml"
     })
     options: [
         {
@@ -26,6 +27,13 @@ WidgetManifest {
             "icon": "counter_1",
             "label": Translation.tr("Show the badge"),
             "default": true
+        },
+        {
+            "key": "bar",
+            "type": "switch",
+            "icon": "toolbar",
+            "label": Translation.tr("Take over the bar"),
+            "default": false
         }
     ]
 }

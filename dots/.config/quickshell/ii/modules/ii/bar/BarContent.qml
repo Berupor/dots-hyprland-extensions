@@ -20,6 +20,7 @@ Item { // Bar content region
     // The right group hugs its content instead of matching the left one, so no spare width
     // piles up next to the clock. The workspaces stay centered via middleSection's offset.
     readonly property real centerSideModuleOffset: (rightCenterGroup.implicitWidth - leftCenterGroup.implicitWidth) / 2
+    readonly property bool widgetViewActive: widgetView.item?.active ?? false
 
     component VerticalBarSeparator: Rectangle {
         Layout.topMargin: Appearance.sizes.baseBarHeight / 3
@@ -51,8 +52,16 @@ Item { // Bar content region
         border.color: Appearance.colors.colLayer0Border
     }
 
+    WidgetViewLoader {
+        id: widgetView
+        anchors.fill: barBackground
+        slot: "barView"
+        visible: root.widgetViewActive
+    }
+
     FocusedScrollMouseArea { // Left side | scroll to change brightness
         id: barLeftSideMouseArea
+        visible: !root.widgetViewActive
 
         anchors {
             top: parent.top
@@ -105,6 +114,7 @@ Item { // Bar content region
 
     Row { // Middle section
         id: middleSection
+        visible: !root.widgetViewActive
         anchors {
             top: parent.top
             bottom: parent.bottom
@@ -211,6 +221,7 @@ Item { // Bar content region
 
     FocusedScrollMouseArea { // Right side | scroll to change volume
         id: barRightSideMouseArea
+        visible: !root.widgetViewActive
 
         anchors {
             top: parent.top

@@ -31,7 +31,8 @@ CatalogCard {
         "regionAction": Translation.tr("Region selector"),
         "catalogView": Translation.tr("This page"),
         "settingsView": Translation.tr("Settings window"),
-        "calendarView": Translation.tr("Sidebar calendar")
+        "calendarView": Translation.tr("Sidebar calendar"),
+        "barView": Translation.tr("Bar, while active")
     })
     readonly property var placements: Object.keys(root.manifest.slots).map(s => root.slotNames[s] ?? s)
 

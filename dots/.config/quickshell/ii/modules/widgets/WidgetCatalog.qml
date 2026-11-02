@@ -19,7 +19,7 @@ Singleton {
 
     /// Version of the widget contract, not of the shell: minor up when it grows
     /// (a slot, a manifest property, an option type), major up when it breaks
-    readonly property string shellVersion: "1.8"
+    readonly property string shellVersion: "1.9"
 
     /// Known slots and the fields their entry needs beyond `path`. A bare-path
     /// entry is only valid when the list is empty
@@ -35,6 +35,7 @@ Singleton {
         "catalogView": [],
         "settingsView": [],
         "calendarView": [],
+        "barView": [],
         "regionAction": ["name"],
         "sidebarLeftTab": ["name", "icon"],
         "sidebarRightTab": ["name", "icon"]

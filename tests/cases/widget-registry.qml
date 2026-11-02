@@ -40,7 +40,7 @@ Item {
                 "id": "futureThing",
                 "name": "Future",
                 "url": "https://example.invalid/future",
-                "minShellVersion": "1.9"
+                "minShellVersion": "1.99"
             },
             {
                 "name": "No id at all",
