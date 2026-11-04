@@ -38,7 +38,8 @@ Singleton {
             // playerctld just copies other buses and we don't need duplicates
             !player.dbusName?.startsWith('org.mpris.MediaPlayer2.playerctld') &&
             // Non-instance mpd bus
-            !(player.dbusName?.endsWith('.mpd') && !player.dbusName.endsWith('MediaPlayer2.mpd')));
+            !(player.dbusName?.endsWith('.mpd') && !player.dbusName.endsWith('MediaPlayer2.mpd')) &&
+            (player.isPlaying || player.trackTitle));
     }
 
 	// Original stuff from fox below
