@@ -4,6 +4,7 @@ import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
 import qs.modules.common.functions
+import qs.modules.widgets
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -87,7 +88,7 @@ Scope {
             exclusionMode: ExclusionMode.Ignore
             exclusiveZone: 0
             implicitWidth: root.widgetWidth
-            implicitHeight: playerColumnLayout.implicitHeight
+            implicitHeight: widgetView.view ? widgetView.implicitHeight : playerColumnLayout.implicitHeight
             color: "transparent"
             WlrLayershell.namespace: "quickshell:mediaControls"
 
@@ -105,7 +106,7 @@ Scope {
             }
 
             mask: Region {
-                item: playerColumnLayout
+                item: widgetView.view ? widgetView : playerColumnLayout
             }
 
             Component.onCompleted: {
@@ -121,8 +122,15 @@ Scope {
                 }
             }
 
+            WidgetViewLoader {
+                id: widgetView
+                width: root.widgetWidth
+                slot: "mediaView"
+            }
+
             ColumnLayout {
                 id: playerColumnLayout
+                visible: !widgetView.view
                 anchors.fill: parent
                 spacing: -Appearance.sizes.elevationMargin // Shadow overlap okay
 
