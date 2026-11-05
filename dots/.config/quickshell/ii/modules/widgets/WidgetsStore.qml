@@ -47,8 +47,11 @@ Singleton {
         saveTimer.restart()
     }
 
+    property string lastWritten: ""
+
     function writeFile() {
-        fileView.setText(JSON.stringify(root.data, null, 2))
+        root.lastWritten = JSON.stringify(root.data, null, 2)
+        fileView.setText(root.lastWritten)
     }
 
     Timer {
@@ -63,8 +66,10 @@ Singleton {
         watchChanges: true
         onFileChanged: reload()
         onLoaded: {
+            const text = fileView.text()
+            if (text === root.lastWritten) return // Own write echoing back, root.data may be newer
             try {
-                root.data = JSON.parse(fileView.text())
+                root.data = JSON.parse(text)
                 root.syncEnabled()
             } catch (e) {
                 console.warn("[WidgetsStore] Bad json: " + e)
