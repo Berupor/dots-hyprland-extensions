@@ -50,8 +50,9 @@ Set `errorReportsTarget` in the same json to post them to a receiver of your own
 
 ![The Widgets page](assets/widgets-page.png)
 
-The folder icon marks a widget installed from a url. A greyed out card carries the
-reason: a missing binary, or a shell version it was not built for.
+An open card of a widget installed from a url shows where it lives, next to Update
+and Remove. A greyed out card carries the reason: a missing binary, or a shell
+version it was not built for.
 
 Nothing ships with the shell itself. Browse widgets on that page lists what
 [the registry](https://github.com/Berupor/ii-widgets) knows and installs it in a click;

@@ -65,10 +65,11 @@ CatalogCard {
     title: root.manifest.name
     subtitle: root.statusText
     iconOpacity: root.manifest.usable ? 1 : 0.4
-    iconColor: root.widgetEnabled ? Appearance.colors.colPrimary : Appearance.colors.colSurfaceContainerHighest
-    iconSymbolColor: root.widgetEnabled ? Appearance.colors.colOnPrimary : Appearance.colors.colOnSurfaceVariant
+    iconColor: Appearance.colors.colSecondaryContainer
+    iconSymbolColor: Appearance.colors.colOnSecondaryContainer
     titleOpacity: root.manifest.usable ? 1 : 0.6
     subtitleColor: root.manifest.usable && !root.unlockHookBlocked ? Appearance.colors.colSubtext : Appearance.colors.colError
+    subtitleOneLine: true
     // An installed widget opens while off too, that is where update and remove live
     canExpand: root.hasBody && (root.widgetEnabled || root.manifest.external)
 
@@ -87,23 +88,6 @@ CatalogCard {
             text: parent.label
             font.pixelSize: Appearance.font.pixelSize.smaller
             color: Appearance.colors.colOnSurfaceVariant
-        }
-    }
-
-    headerLeading: MaterialSymbol {
-        visible: root.manifest.external
-        text: "folder_open"
-        iconSize: Appearance.font.pixelSize.larger
-        color: Appearance.colors.colOnSurfaceVariant
-
-        HoverHandler {
-            id: originHover
-        }
-
-        StyledToolTip {
-            extraVisibleCondition: false
-            alternativeVisibleCondition: originHover.hovered
-            text: root.originText
         }
     }
 
@@ -221,9 +205,9 @@ CatalogCard {
 
         StyledText { // Fills even while empty, so the buttons stay right
             Layout.fillWidth: true
-            text: root.jobMessage
+            text: root.jobMessage !== "" ? root.jobMessage : root.originText
             font.pixelSize: Appearance.font.pixelSize.smaller
-            color: WidgetInstaller.state === WidgetInstaller.State.Failed ? Appearance.colors.colError : Appearance.colors.colSubtext
+            color: root.jobMessage !== "" && WidgetInstaller.state === WidgetInstaller.State.Failed ? Appearance.colors.colError : Appearance.colors.colSubtext
             wrapMode: Text.WordWrap
         }
 

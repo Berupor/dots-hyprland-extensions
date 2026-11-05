@@ -8,6 +8,15 @@ import qs.modules.common.widgets
  */
 Rectangle {
     id: root
+
+    /// Place in a boxed list: outer corners round, inner ones nearly square
+    enum Segment {
+        Alone,
+        First,
+        Middle,
+        Last
+    }
+
     property string icon
     property string title
     property string subtitle
@@ -17,17 +26,23 @@ Rectangle {
     property color titleColor: Appearance.colors.colOnLayer2
     property real titleOpacity: 1
     property color subtitleColor: Appearance.colors.colSubtext
+    property bool subtitleOneLine: false
     property bool canExpand: true
     property bool expanded: false
     readonly property bool bodyShown: root.canExpand && root.expanded
+    property int segment: CatalogCard.Segment.Alone
+    readonly property real topRadius: segment === CatalogCard.Segment.Alone || segment === CatalogCard.Segment.First ? Appearance.rounding.large : Appearance.rounding.unsharpenmore
+    readonly property real bottomRadius: segment === CatalogCard.Segment.Alone || segment === CatalogCard.Segment.Last ? Appearance.rounding.large : Appearance.rounding.unsharpenmore
 
-    property alias headerLeading: headerLeadingRow.data // Before the chevron
-    property alias headerTrailing: headerTrailingRow.data // After it
+    property alias headerTrailing: headerTrailingRow.data // After the chevron
     default property alias bodyData: bodyContent.data
 
     Layout.fillWidth: true
     implicitHeight: cardColumn.implicitHeight
-    radius: Appearance.rounding.large
+    topLeftRadius: root.topRadius
+    topRightRadius: root.topRadius
+    bottomLeftRadius: root.bottomRadius
+    bottomRightRadius: root.bottomRadius
     color: Appearance.colors.colLayer3
 
     ColumnLayout {
@@ -37,11 +52,14 @@ Rectangle {
 
         Item { // Header
             Layout.fillWidth: true
-            implicitHeight: headerRow.implicitHeight + 12 * 2
+            implicitHeight: headerRow.implicitHeight + 10 * 2
 
             Rectangle {
                 anchors.fill: parent
-                radius: root.radius
+                topLeftRadius: root.topRadius
+                topRightRadius: root.topRadius
+                bottomLeftRadius: root.bodyShown ? 0 : root.bottomRadius
+                bottomRightRadius: root.bodyShown ? 0 : root.bottomRadius
                 color: Appearance.colors.colOnLayer2
                 opacity: headerArea.containsMouse ? 0.06 : 0
                 Behavior on opacity {
@@ -72,8 +90,8 @@ Rectangle {
                 MaterialShapeWrappedMaterialSymbol {
                     Layout.alignment: Qt.AlignVCenter
                     text: root.icon
-                    iconSize: Appearance.font.pixelSize.hugeass
-                    padding: 10
+                    iconSize: Appearance.font.pixelSize.larger
+                    padding: 7
                     opacity: root.iconOpacity
                     color: root.iconColor
                     colSymbol: root.iconSymbolColor
@@ -98,20 +116,25 @@ Rectangle {
                     }
 
                     StyledText {
+                        id: subtitleText
                         Layout.fillWidth: true
                         visible: root.subtitle !== ""
                         text: root.subtitle
                         font.pixelSize: Appearance.font.pixelSize.smaller
                         color: root.subtitleColor
-                        wrapMode: Text.WordWrap
-                    }
-                }
+                        wrapMode: root.subtitleOneLine ? Text.NoWrap : Text.WordWrap
+                        elide: root.subtitleOneLine ? Text.ElideRight : Text.ElideNone
 
-                RowLayout {
-                    id: headerLeadingRow
-                    Layout.alignment: Qt.AlignVCenter
-                    visible: children.length > 0
-                    spacing: 14
+                        HoverHandler {
+                            id: subtitleHover
+                        }
+
+                        StyledToolTip {
+                            extraVisibleCondition: false
+                            alternativeVisibleCondition: subtitleHover.hovered && subtitleText.truncated
+                            text: root.subtitle
+                        }
+                    }
                 }
 
                 MaterialSymbol {
