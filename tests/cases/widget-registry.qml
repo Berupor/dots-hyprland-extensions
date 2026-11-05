@@ -93,6 +93,16 @@ Item {
                 "want": [4, true]
             },
             {
+                "name": "a body that is not an index leaves the cache alone",
+                "got": [probe.seen.garbageState ?? -1, probe.seen.garbageEntries ?? 0, probe.seen.garbageStale ?? false],
+                "want": [WidgetRegistry.State.Ready, 4, true]
+            },
+            {
+                "name": "and the cache still answers later without a fetch",
+                "got": [probe.seen.afterGarbageState ?? -1, probe.seen.afterGarbageEntries ?? 0],
+                "want": [WidgetRegistry.State.Ready, 4]
+            },
+            {
                 "name": "what is not an index parses to nothing",
                 "got": [WidgetRegistry.parse("not json"), WidgetRegistry.parse('{"widgets":"soon"}'), WidgetRegistry.parse('{"widgets":[]}')],
                 "want": [null, null, []]
@@ -110,7 +120,8 @@ Item {
         id: writeIndex
         property bool extra: false
         property bool thenForce: false
-        command: ["env", `RB=${probe.indexJson(extra)}`, `RP=${probe.indexPath}`, "bash", "-c", `
+        property bool garbage: false
+        command: ["env", `RB=${garbage ? "<html>Sign in to the network</html>" : probe.indexJson(extra)}`, `RP=${probe.indexPath}`, "bash", "-c", `
             mkdir -p "$(dirname "$RP")"
             printf '%s' "$RB" > "$RP"`]
         onExited: {
@@ -147,8 +158,17 @@ Item {
                 snap.job = WidgetInstaller.job;
                 snap.jobMessage = WidgetInstaller.message;
                 break;
+            case 4:
+                snap.garbageState = WidgetRegistry.state;
+                snap.garbageEntries = WidgetRegistry.entries.length;
+                snap.garbageStale = WidgetRegistry.stale;
+                break;
+            case 5:
+                snap.afterGarbageState = WidgetRegistry.state;
+                snap.afterGarbageEntries = WidgetRegistry.entries.length;
+                break;
             }
-            probe.seen = Object.assign({}, probe.seen, snap);
+            probe.seen =Object.assign({}, probe.seen, snap);
             probe.step++;
             advance.restart();
         }
@@ -170,6 +190,14 @@ Item {
             case 3: // Nothing to fetch from, so the cache has to answer
                 WidgetRegistry.url = `file://${probe.indexPath}.gone`;
                 WidgetRegistry.load(true);
+                break;
+            case 4: // The source now answers with a captive-portal page
+                writeIndex.garbage = true;
+                writeIndex.thenForce = true;
+                writeIndex.running = true;
+                break;
+            case 5:
+                WidgetRegistry.load(false);
                 break;
             }
         }

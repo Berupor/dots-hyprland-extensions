@@ -44,16 +44,20 @@ Singleton {
         proc.command = ["env", `RU=${root.url}`, `RC=${root.cacheFile}`, `RT=${root.ttl}`, `RF=${force ? 1 : ""}`, "bash", "-c", `
             [ -n "$RC" ] || exit 1 # No cache path, no writing ".new" into whatever the cwd is
             mkdir -p "$(dirname "$RC")"
-            if [ -z "$RF" ] && [ -f "$RC" ] && [ $(( $(date +%s) - $(stat -c %Y "$RC") )) -lt "$RT" ]; then
+            valid() { jq -e '.widgets | arrays' "$1" >/dev/null 2>&1; }
+            if [ -z "$RF" ] && [ -f "$RC" ] && [ $(( $(date +%s) - $(stat -c %Y "$RC") )) -lt "$RT" ] && valid "$RC"; then
                 exec cat "$RC"
             fi
-            if curl -fsS --max-time 15 -o "$RC.new" "$RU"; then
+            # Only an index replaces the cache; otherwise an old list beats an empty page
+            if ! curl -fsS --max-time 15 -o "$RC.new" "$RU"; then
+                rm -f -- "$RC.new"
+            elif valid "$RC.new"; then
                 mv -- "$RC.new" "$RC"
             else
-                # Nothing new, but an old list beats an empty page. curl said why on stderr
+                echo "The registry answered with something that is not an index" >&2
                 rm -f -- "$RC.new"
-                [ -f "$RC" ] || exit 1
             fi
+            [ -f "$RC" ] && valid "$RC" || exit 1
             cat "$RC"`];
         proc.running = true;
     }
