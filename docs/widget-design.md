@@ -1,9 +1,11 @@
 # Widget design
 
 A widget should read as a piece of ii, not as a separate app inside its window.
-`tests/design-lint.sh` only catches hex colors and fonts outside `Appearance`; a
-widget can pass it and still look foreign next to the shell. This page is the
-part the lint can't check.
+`tests/design-lint.sh` catches literal colors, fonts, radii (above 3) and type or
+icon sizes, everything that should come from `Appearance`; a widget can pass it
+and still look foreign next to the shell. This page is the part the lint can't
+check. Paddings have no scale in `Appearance` and are not linted: compare them
+with the host by eye.
 
 ## Start from the host
 

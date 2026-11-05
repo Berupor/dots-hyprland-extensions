@@ -29,17 +29,14 @@ if [ -n "$QMLLINT" ]; then
     while IFS= read -r f; do
         out=$("$QMLLINT" "$f" 2>&1 | grep -E "^Error:|\[syntax")
         [ -n "$out" ] && { echo "qmllint: $f"; echo "$out"; FAIL=1; }
-    done < <(find "$WDIR" "$REPO/tests/cases" "$REPO/tests/fixtures" -name '*.qml')
+    done < <(find "$REPO/tests/cases" -name '*.qml')
 else
     echo "no qmllint, syntax lint skipped"
 fi
 
-# --- static: design lint (Material You contract) -----------------------------
-DESIGN=("$WDIR" "$REPO/tests/fixtures") # The fixture is the reference external widget
-hex=$(grep -rnE 'color:.*"#[0-9a-fA-F]{3,8}"' "${DESIGN[@]}" | grep -v transparent)
-fonts=$(grep -rn "font.family:" "${DESIGN[@]}" | grep -v "Appearance\.")
-[ -n "$hex" ] && { echo "design lint, hardcoded colors:"; echo "$hex"; FAIL=1; }
-[ -n "$fonts" ] && { echo "design lint, fonts outside Appearance:"; echo "$fonts"; FAIL=1; }
+# --- static: design lint and qmllint ------------------------------------------
+# The fixture is the reference external widget
+"$REPO/tests/design-lint.sh" "$WDIR" "$REPO/tests/fixtures" || FAIL=1
 
 if [ "${1:-}" = "--static" ]; then
     [ "$FAIL" = 0 ] && echo "PASS static" || echo FAIL
