@@ -18,7 +18,8 @@ Singleton {
 	id: root;
 	property list<MprisPlayer> players: Mpris.players.values.filter(player => isRealPlayer(player));
 	property MprisPlayer trackedPlayer: null;
-	property MprisPlayer activePlayer: (trackedPlayer?.isPlaying ? trackedPlayer : players.find(p => p.isPlaying)) ?? trackedPlayer ?? Mpris.players.values[0] ?? null;
+	readonly property MprisPlayer realTrackedPlayer: players.includes(trackedPlayer) ? trackedPlayer : null; // Not playerctld's proxy
+	property MprisPlayer activePlayer: (realTrackedPlayer?.isPlaying ? realTrackedPlayer : players.find(p => p.isPlaying)) ?? realTrackedPlayer ?? players[0] ?? Mpris.players.values[0] ?? null;
 	signal trackChanged(reverse: bool);
 
 	property bool __reverse: false;
