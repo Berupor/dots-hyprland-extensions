@@ -24,3 +24,6 @@ Asserted by `tests/cases/external-widget.qml`. The same widget with a README, a
 demo scene, shots and CI around it is
 [ii-widget-hello](https://github.com/Berupor/ii-widget-hello), the one to hand an
 author; this copy stays small and offline, since the install cases clone from it.
+
+`hostile` is a lockWidget that grabs focus, sets `z: 1000`, asks for 5000 px and
+throws, for `tests/cases/lock-widget.qml` to check the host boxes it in.

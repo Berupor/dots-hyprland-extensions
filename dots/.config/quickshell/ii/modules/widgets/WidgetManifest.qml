@@ -32,7 +32,10 @@ import Quickshell.Io
  *    entries carry `rawValue`) before it is drawn: false drops it, `secret` masks its text;
  *    `service` is a non-visual object built once and kept while the widget is enabled, the
  *    home of an IpcHandler or a Timer; `quickToggle` is a QuickToggleModel drawn as a
- *    tile of the android-style quick toggles, placed by the user in edit mode.
+ *    tile of the android-style quick toggles, placed by the user in edit mode;
+ *    `notificationFilter` exposes filter(n) over a frozen snapshot: false drops,
+ *    "silent" skips the popup, critical is never dropped; `lockWidget` draws at the top
+ *    of the lock screen, no input, gets `screenName`, needs the same card grant as unlockHook.
  *    Any slot file may call WidgetCatalog.showOsd(widgetId, {icon, text, value}) for
  *    the shell's OSD pill, value 0..1 optional
  * 7. `minShellVersion` is the contract you built against (WidgetCatalog.shellVersion).

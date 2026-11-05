@@ -14,7 +14,7 @@ CatalogCard {
     required property var manifest
     readonly property bool widgetEnabled: WidgetCatalog.isEnabled(manifest.widgetId)
     readonly property var drawnOptions: manifest.options.filter(o => o.label) // The rest are values for a settingsPage
-    readonly property bool hasBody: root.drawnOptions.length > 0 || manifest.settingsPage !== "" || root.placements.length > 0 || manifest.external || root.hasUnlockHook
+    readonly property bool hasBody: root.drawnOptions.length > 0 || manifest.settingsPage !== "" || root.placements.length > 0 || manifest.external || root.grantSlots.length > 0
     readonly property string jobMessage: WidgetInstaller.job === root.manifest.widgetId ? WidgetInstaller.message : ""
     property bool confirmingRemove: false
 
@@ -33,25 +33,49 @@ CatalogCard {
         "settingsView": Translation.tr("Settings window"),
         "calendarView": Translation.tr("Sidebar calendar"),
         "barView": Translation.tr("Bar, while active"),
-        "mediaView": Translation.tr("Media popup")
+        "mediaView": Translation.tr("Media popup"),
+        "lockWidget": Translation.tr("Lock screen, seen by anyone")
     })
     readonly property var placements: Object.keys(root.manifest.slots).map(s => root.slotNames[s] ?? s)
 
-    readonly property bool hasUnlockHook: root.manifest.slots.unlockHook !== undefined
-    /// Hash of the widget's code the password grant was given for, empty until computed
-    property string hookHash: ""
-    readonly property string grantedHash: WidgetsStore.data.unlockHookHashes?.[root.manifest.widgetId] ?? ""
-    readonly property bool unlockHookGranted: root.hasUnlockHook && WidgetCatalog.unlockHookAllowed(root.manifest.widgetId) && root.hookHash !== "" && root.grantedHash === root.hookHash
-    /// Not allowed, or allowed for other code than what is on disk now
-    readonly property bool unlockHookBlocked: root.widgetEnabled && root.hasUnlockHook && (!WidgetCatalog.unlockHookAllowed(root.manifest.widgetId) || (root.hookHash !== "" && root.grantedHash !== root.hookHash))
+    /// Slots that run only once allowed for the code on disk, in the order they are asked
+    readonly property var grantTexts: ({
+        "unlockHook": {
+            "icon": "password",
+            "text": Translation.tr("Hand my login password to this widget"),
+            "tooltip": Translation.tr("It runs on every unlock and sees the password. A changed widget has to be allowed again"),
+            "blocked": Translation.tr("Wants your login password: allow it inside")
+        },
+        "lockWidget": {
+            "icon": "lock",
+            "text": Translation.tr("Draw on the lock screen, visible to anyone at the screen"),
+            "tooltip": Translation.tr("Shown on every screen while locked. A changed widget has to be allowed again"),
+            "blocked": Translation.tr("Wants to draw on the lock screen: allow it inside")
+        }
+    })
+    readonly property var grantSlots: Object.keys(root.grantTexts).filter(s => root.manifest.slots[s] !== undefined)
+    /// Hash of the widget's code on disk, empty until computed
+    property string codeHash: ""
 
-    function setUnlockHookGrant(on) {
-        WidgetCatalog.setUnlockHookGrant(root.manifest.widgetId, on ? root.hookHash : "");
+    function granted(slot) {
+        return root.codeHash !== "" && WidgetCatalog.grantFor(slot, root.manifest.widgetId) === root.codeHash;
+    }
+
+    /// Not allowed, or allowed for other code than what is on disk now
+    function blocked(slot) {
+        const hash = WidgetCatalog.grantFor(slot, root.manifest.widgetId);
+        return hash === "" || (root.codeHash !== "" && hash !== root.codeHash);
+    }
+
+    readonly property string blockedSlot: root.widgetEnabled ? (root.grantSlots.find(s => root.blocked(s)) ?? "") : ""
+
+    function setGrant(slot, on) {
+        WidgetCatalog.setGrant(slot, root.manifest.widgetId, on ? root.codeHash : "");
     }
 
     function rehash() {
-        if (root.hasUnlockHook)
-            WidgetCatalog.codeHash(root.manifest, hash => root.hookHash = hash);
+        if (root.grantSlots.length > 0)
+            WidgetCatalog.codeHash(root.manifest, hash => root.codeHash = hash);
     }
 
     /// Option controls also fire for the bound value, so only a real change is written
@@ -72,8 +96,8 @@ CatalogCard {
 
     /// Subtitle: why it cannot run, or what it does
     readonly property string statusText: {
-        if (root.unlockHookBlocked)
-            return Translation.tr("Wants your login password: allow it inside");
+        if (root.blockedSlot !== "")
+            return root.grantTexts[root.blockedSlot].blocked;
         if (!root.manifest.supported)
             return Translation.tr("Built for shell %1, this is %2").arg(root.manifest.minShellVersion).arg(WidgetCatalog.shellVersion);
         if (root.manifest.depsMissing.length > 0)
@@ -97,7 +121,7 @@ CatalogCard {
     iconColor: Appearance.colors.colSecondaryContainer
     iconSymbolColor: Appearance.colors.colOnSecondaryContainer
     titleOpacity: root.manifest.usable ? 1 : 0.6
-    subtitleColor: root.manifest.usable && !root.unlockHookBlocked ? Appearance.colors.colSubtext : Appearance.colors.colError
+    subtitleColor: root.manifest.usable && root.blockedSlot === "" ? Appearance.colors.colSubtext : Appearance.colors.colError
     subtitleOneLine: true
     // An installed widget opens while off too, that is where update and remove live
     canExpand: root.hasBody && (root.widgetEnabled || root.manifest.external)
@@ -143,19 +167,23 @@ CatalogCard {
         }
     }
 
-    ConfigSwitch {
-        visible: root.hasUnlockHook && root.widgetEnabled
-        enabled: root.hookHash !== ""
-        buttonIcon: "password"
-        text: Translation.tr("Hand my login password to this widget")
-        onClicked: root.setUnlockHookGrant(!root.unlockHookGranted)
+    Repeater {
+        model: root.widgetEnabled ? root.grantSlots : []
+        delegate: ConfigSwitch {
+            id: grantSwitch
+            required property string modelData
+            enabled: root.codeHash !== ""
+            buttonIcon: root.grantTexts[grantSwitch.modelData].icon
+            text: root.grantTexts[grantSwitch.modelData].text
+            onClicked: root.setGrant(grantSwitch.modelData, !root.granted(grantSwitch.modelData))
 
-        Binding on checked {
-            value: root.unlockHookGranted
-        }
+            Binding on checked {
+                value: root.granted(grantSwitch.modelData)
+            }
 
-        StyledToolTip {
-            text: Translation.tr("It runs on every unlock and sees the password. A changed widget has to be allowed again")
+            StyledToolTip {
+                text: root.grantTexts[grantSwitch.modelData].tooltip
+            }
         }
     }
 

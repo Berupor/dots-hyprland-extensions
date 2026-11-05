@@ -19,7 +19,9 @@ WidgetManifest {
         "searchFilter": "HelloFilter.qml",
         "service": "HelloService.qml",
         "barView": "HelloBar.qml",
-        "quickToggle": "Toggle.qml"
+        "quickToggle": "Toggle.qml",
+        "lockWidget": "LockWidget.qml",
+        "notificationFilter": "NotificationFilter.qml"
     })
     options: [
         {

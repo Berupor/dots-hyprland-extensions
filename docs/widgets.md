@@ -35,6 +35,8 @@ to render, which lands inside the card so it wants `ContentSubsection`, not
 | `barView`          | 1.9   | -               | Stays loaded and fills the horizontal bar; while its item's `active` is true it replaces the bar content, the bar background stays. False or no widget leaves the built-in bar. |
 | `mediaView`        | 1.10  | -               | Replaces the player cards of the media popup, `mediaControlsWidth` wide; the popup takes the item's implicit height. Players come from `MprisController`. |
 | `quickToggle`      | 1.11  | -               | A `QuickToggleModel` (`name`, `icon`, `toggled`, `statusText`, `mainAction`, `altAction`; `hasMenu` is ignored), drawn as a tile of the android-style quick toggles. The user places it in the grid's edit mode. |
+| `notificationFilter` | 1.11 | -              | Stays loaded, `filter(n)` sees a frozen snapshot of each incoming notification (`appName`, `summary`, `body`, `urgency` low/normal/critical, `actions`, ...) before it is shown or stored. `false` drops it, `"silent"` keeps it in the list without a popup; a critical one is never dropped, only silenced. A throw keeps it. Synchronous, so stay fast. |
+| `lockWidget`       | 1.11  | -               | Drawn at the top centre of each lock screen, built only while locked, clipped to 360x160, no input or focus, handed `screenName` and nothing else. Runs only after the user allows it on the card for this exact code; anyone at the screen sees it. |
 | `regionAction`     | 1.0   | `name`          | Offered during region selection (ipc `region widget <name>`). Exposes `available` and `perform(path, x, y, w, h)`. |
 | `sidebarLeftTab`   | 1.0   | `name`, `icon`  | Tab in the left sidebar.                                                                                           |
 | `sidebarRightTab`  | 1.0   | `name`, `icon`  | Tab in the right sidebar.                                                                                          |
@@ -58,7 +60,7 @@ major up when it breaks. A widget's `minShellVersion` has to match the same
 major and be no newer than the shell's, or its card shows "Built for shell X,
 this is Y" and it does not load. 1.0 is the baseline; 1.1 added `textField`;
 1.2 added `orientations` for the vertical bar; 1.3 added `barGauge` and
-`WidgetSlot.spacingBefore`; 1.4 added `screenOverlay`; 1.5 added `unlockHook`; 1.6 added `calendarView`; 1.7 added `searchFilter`; 1.8 added `service`; 1.9 added `barView`; 1.10 added `mediaView`; 1.11 added `quickToggle` and `WidgetCatalog.showOsd`.
+`WidgetSlot.spacingBefore`; 1.4 added `screenOverlay`; 1.5 added `unlockHook`; 1.6 added `calendarView`; 1.7 added `searchFilter`; 1.8 added `service`; 1.9 added `barView`; 1.10 added `mediaView`; 1.11 added `quickToggle`, `notificationFilter`, `lockWidget` and `WidgetCatalog.showOsd`.
 
 Any slot file can call `WidgetCatalog.showOsd(widgetId, {icon, text, value})` to show
 the shell's OSD pill: `icon` a Material symbol, `value` 0..1 draws the bar and is

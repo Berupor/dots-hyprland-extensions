@@ -1,4 +1,5 @@
 pragma Singleton
+import qs
 import qs.modules.common
 import qs.modules.common.functions
 import Qt.labs.folderlistmodel
@@ -41,6 +42,8 @@ Singleton {
         "barView": [],
         "mediaView": [],
         "quickToggle": [],
+        "lockWidget": [],
+        "notificationFilter": [],
         "regionAction": ["name"],
         "sidebarLeftTab": ["name", "icon"],
         "sidebarRightTab": ["name", "icon"]
@@ -133,9 +136,33 @@ Singleton {
         return action?.available ? action : null
     }
 
-    /// Switched on while the manifest already had the slot, so an update can't add it silently
-    function unlockHookAllowed(widgetId) {
-        return (WidgetsStore.data.unlockHookAllowed ?? []).includes(widgetId)
+    /// Hash of the code a sensitive slot was allowed for, "" when it was not
+    function grantFor(slot, widgetId) {
+        return WidgetsStore.data.grants?.[slot]?.[widgetId] ?? ""
+    }
+
+    /// An empty hash revokes
+    function setGrant(slot, widgetId, hash) {
+        const grants = Object.assign({}, WidgetsStore.data.grants)
+        const forSlot = Object.assign({}, grants[slot])
+        delete forSlot[widgetId]
+        if (hash !== "") forSlot[widgetId] = hash
+        grants[slot] = forSlot
+        WidgetsStore.setKey("grants", grants)
+    }
+
+    /// done(true) only for the code on disk being the code allowed, anything else loses the grant
+    function verifyGrant(slot, manifest, done) {
+        const id = manifest.widgetId
+        if (root.grantFor(slot, id) === "") return done(false)
+        root.codeHash(manifest, hash => {
+            const granted = root.grantFor(slot, id)
+            if (granted === "") return done(false)
+            if (hash !== "" && hash === granted) return done(true)
+            console.warn(`[WidgetCatalog] widget_grant_dropped slot=${slot} widget=${id}`)
+            root.setGrant(slot, id, "")
+            done(false)
+        })
     }
 
     /// sha256 of every file in a widget dir, so a script the hook runs counts too, symlinks
@@ -161,35 +188,15 @@ Singleton {
         }
     }
 
-    /// Allows the unlockHook of a widget for the code with this hash, an empty hash revokes
-    function setUnlockHookGrant(widgetId, hash) {
-        const allowed = (WidgetsStore.data.unlockHookAllowed ?? []).filter(x => x !== widgetId)
-        const hashes = Object.assign({}, WidgetsStore.data.unlockHookHashes)
-        delete hashes[widgetId]
-        if (hash !== "") {
-            allowed.push(widgetId)
-            hashes[widgetId] = hash
-        }
-        WidgetsStore.setKey("unlockHookAllowed", allowed)
-        WidgetsStore.setKey("unlockHookHashes", hashes)
-    }
-
     /// Hands the accepted login password to each unlockHook once, empty on fingerprint
     function runUnlockHooks(password) {
         if (!password) return
-        for (const manifest of root.forSlot("unlockHook").filter(w => root.unlockHookAllowed(w.widgetId)))
-            root.codeHash(manifest, hash => root.runUnlockHook(manifest, hash, password))
+        for (const manifest of root.forSlot("unlockHook"))
+            root.verifyGrant("unlockHook", manifest, ok => { if (ok) root.runUnlockHook(manifest, password) })
     }
 
-    /// Only for the code that was allowed: anything else loses the grant
-    function runUnlockHook(manifest, hash, password) {
+    function runUnlockHook(manifest, password) {
         const id = manifest.widgetId
-        if (!root.unlockHookAllowed(id)) return
-        if (hash === "" || hash !== WidgetsStore.data.unlockHookHashes?.[id]) {
-            console.warn(`[WidgetCatalog] unlock_hook_grant_dropped widget=${id}`)
-            root.setUnlockHookGrant(id, "")
-            return
-        }
         let hook = null
         try {
             hook = root.build(manifest, manifest.resolve(manifest.slotPath("unlockHook")))
@@ -199,6 +206,32 @@ Singleton {
             ErrorReporter.report(id, `unlockHook threw ${e.name} at line ${e.lineNumber}`)
         }
         hook?.destroy()
+    }
+
+    /// lockWidgets whose code matched the grant at lock time, shared by every screen
+    property list<string> lockWidgetsVerified: []
+    property int _lockRound: 0
+
+    function verifyLockWidgets() {
+        const round = ++root._lockRound
+        root.lockWidgetsVerified = []
+        for (const manifest of root.forSlot("lockWidget"))
+            root.verifyGrant("lockWidget", manifest, ok => {
+                if (ok && round === root._lockRound)
+                    root.lockWidgetsVerified = root.lockWidgetsVerified.concat([manifest.widgetId])
+            })
+    }
+
+    Connections {
+        target: GlobalStates
+        function onScreenLockedChanged() {
+            if (GlobalStates.screenLocked) {
+                root.verifyLockWidgets()
+            } else {
+                root._lockRound++
+                root.lockWidgetsVerified = []
+            }
+        }
     }
 
     /// Results every searchFilter lets through, some of them marked `secret` on the way
@@ -221,6 +254,61 @@ Singleton {
             id: host
             required property var modelData
             property QtObject filter: root.build(host.modelData, host.modelData.resolve(host.modelData.slotPath("searchFilter")), host)
+        }
+    }
+
+    function notificationUrgency(value) {
+        const text = String(value).toLowerCase()
+        if (text === "0" || text === "low") return "low"
+        if (text === "2" || text === "critical") return "critical"
+        return "normal"
+    }
+
+    /// Read-only copy of a Notification for the filters
+    function notificationSnapshot(notification) {
+        return Object.freeze({
+            "appName": notification.appName ?? "",
+            "appIcon": notification.appIcon ?? "",
+            "summary": notification.summary ?? "",
+            "body": notification.body ?? "",
+            "image": notification.image ?? "",
+            "urgency": root.notificationUrgency(notification.urgency),
+            "isTransient": notification.hints?.transient ?? false,
+            "expireTimeout": notification.expireTimeout ?? 0,
+            "actions": Object.freeze((notification.actions ?? []).map(a => Object.freeze({ "identifier": a.identifier, "text": a.text })))
+        })
+    }
+
+    /// "drop" beats "silent" beats "keep"; a critical notification is never dropped
+    function combineNotificationResults(results, urgency) {
+        const verdict = results.includes(false) ? "drop" : results.includes("silent") ? "silent" : "keep"
+        return verdict === "drop" && urgency === "critical" ? "silent" : verdict
+    }
+
+    function notificationVerdict(snapshot) {
+        const results = notificationFilters.instances.map(host => {
+            try {
+                return host.filter?.filter(snapshot)
+            } catch (e) {
+                // The message may carry the notification text, and reports leave the machine
+                ErrorReporter.report(host.modelData.widgetId, `notificationFilter threw ${e.name} at line ${e.lineNumber}`)
+            }
+        })
+        return root.combineNotificationResults(results, snapshot.urgency)
+    }
+
+    /// "keep", "silent" or "drop"
+    function filterNotification(notification) {
+        return root.notificationVerdict(root.notificationSnapshot(notification))
+    }
+
+    Variants {
+        id: notificationFilters
+        model: root.runsHosts ? root.forSlot("notificationFilter") : []
+        delegate: QtObject {
+            id: filterHost
+            required property var modelData
+            property QtObject filter: root.build(filterHost.modelData, filterHost.modelData.resolve(filterHost.modelData.slotPath("notificationFilter")), filterHost)
         }
     }
 

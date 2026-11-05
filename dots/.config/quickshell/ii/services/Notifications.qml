@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 
 import qs.modules.common
 import qs
+import qs.modules.widgets
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -160,6 +161,8 @@ Singleton {
         persistenceSupported: true
 
         onNotification: (notification) => {
+            const verdict = WidgetCatalog.filterNotification(notification);
+            if (verdict === "drop") return;
             notification.tracked = true
             const newNotifObject = notifComponent.createObject(root, {
                 "notificationId": notification.id + root.idOffset,
@@ -169,7 +172,7 @@ Singleton {
 			root.list = [...root.list, newNotifObject];
 
             // Popup
-            if (!root.popupInhibited) {
+            if (!root.popupInhibited && verdict !== "silent") {
                 newNotifObject.popup = true;
                 if (notification.expireTimeout != 0) {
                     newNotifObject.timer = notifTimerComponent.createObject(root, {

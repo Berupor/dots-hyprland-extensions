@@ -5,7 +5,7 @@ import Quickshell.Io
 import QtQuick
 
 /**
- * Widget catalog state: enabled ids and per-widget options.
+ * Widget catalog state: enabled ids, per-widget options, sensitive slot grants.
  */
 Singleton {
     id: root
@@ -20,13 +20,16 @@ Singleton {
             root.enabled = next
     }
 
-    /// `allowUnlockHook`: the user saw the unlockHook slot when switching it on
-    function setEnabled(widgetId, on, allowUnlockHook = false) {
+    /// Drops the widget's grants either way, switching on is not consent
+    function setEnabled(widgetId, on) {
         const enabled = (data.enabled ?? []).filter(x => x !== widgetId)
         if (on) enabled.push(widgetId)
-        const allowed = (data.unlockHookAllowed ?? []).filter(x => x !== widgetId)
-        if (on && allowUnlockHook) allowed.push(widgetId)
-        root.data = Object.assign({}, data, { "enabled": enabled, "unlockHookAllowed": allowed })
+        const grants = {}
+        for (const slot in data.grants ?? {}) {
+            grants[slot] = Object.assign({}, data.grants[slot])
+            delete grants[slot][widgetId]
+        }
+        root.data = Object.assign({}, data, { "enabled": enabled, "grants": grants })
         syncEnabled()
         save()
     }

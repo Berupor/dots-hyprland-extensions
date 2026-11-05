@@ -23,20 +23,20 @@ Item {
     }
 
     function allowed() {
-        return WidgetCatalog.unlockHookAllowed("hello");
+        return WidgetCatalog.grantFor("unlockHook", "hello") !== "";
     }
 
     /// Hooks run once the hash is back, so each step reads what the one before it caused
     readonly property var steps: [
         () => {
             WidgetsStore.setEnabled("hello", true);
-            probe.log.afterEnable = [probe.card.unlockHookBlocked, probe.card.statusText, probe.allowed()];
+            probe.log.afterEnable = [probe.card.blockedSlot === "unlockHook", probe.card.statusText, probe.allowed()];
             WidgetCatalog.runUnlockHooks("before-consent");
         },
         () => {
             probe.log.withoutConsent = probe.unlocks();
-            probe.card.setUnlockHookGrant(true);
-            probe.log.afterGrant = [probe.card.unlockHookGranted, WidgetsStore.data.unlockHookHashes?.hello === probe.card.hookHash];
+            probe.card.setGrant("unlockHook", true);
+            probe.log.afterGrant = [probe.card.granted("unlockHook"), WidgetCatalog.grantFor("unlockHook", "hello") === probe.card.codeHash];
             WidgetCatalog.runUnlockHooks("");
         },
         () => {
@@ -45,13 +45,13 @@ Item {
         },
         () => {
             probe.log.afterPassword = probe.unlocks();
-            WidgetsStore.setKey("unlockHookHashes", { "hello": "hash-of-the-old-code" }); // As if an update swapped the code
-            probe.log.staleInCard = [probe.card.unlockHookGranted, probe.card.unlockHookBlocked];
+            WidgetCatalog.setGrant("unlockHook", "hello", "hash-of-the-old-code"); // As if an update swapped the code
+            probe.log.staleInCard = [probe.card.granted("unlockHook"), probe.card.blockedSlot === "unlockHook"];
             WidgetCatalog.runUnlockHooks("stale-code");
         },
         () => {
-            probe.log.afterStale = [probe.unlocks(), probe.allowed(), WidgetsStore.data.unlockHookHashes?.hello ?? null];
-            probe.card.setUnlockHookGrant(true);
+            probe.log.afterStale = [probe.unlocks(), probe.allowed(), WidgetCatalog.grantFor("unlockHook", "hello")];
+            probe.card.setGrant("unlockHook", true);
             WidgetCatalog.runUnlockHooks("regranted");
         },
         () => {
@@ -83,7 +83,7 @@ Item {
         return [
             {
                 "name": "the hook's code hash is a sha256",
-                "got": /^[0-9a-f]{64}$/.test(probe.card?.hookHash ?? ""),
+                "got": /^[0-9a-f]{64}$/.test(probe.card?.codeHash ?? ""),
                 "want": true
             },
             {
@@ -124,7 +124,7 @@ Item {
             {
                 "name": "a changed hook gets no password and loses the grant",
                 "got": probe.log.afterStale,
-                "want": [["hunter2"], false, null]
+                "want": [["hunter2"], false, ""]
             },
             {
                 "name": "allowing it again delivers to the current code",
@@ -138,7 +138,7 @@ Item {
             },
             {
                 "name": "a script added next to the hook changes the code hash",
-                "got": /^[0-9a-f]{64}$/.test(probe.log.withScript ?? "") && probe.log.withScript !== probe.card?.hookHash,
+                "got": /^[0-9a-f]{64}$/.test(probe.log.withScript ?? "") && probe.log.withScript !== probe.card?.codeHash,
                 "want": true
             },
             {
@@ -154,7 +154,7 @@ Item {
         repeat: true
         interval: 200
         onTriggered: {
-            if (probe.card?.hookHash && probe.step < probe.steps.length)
+            if (probe.card?.codeHash && probe.step < probe.steps.length)
                 probe.steps[probe.step++]();
         }
     }
