@@ -16,6 +16,8 @@ Singleton {
     // reader (sidebar tabs included) a new array and make them rebuild their content
     property var _slotCache: ({})
     readonly property string externalDir: `${Directories.shellConfig}/widgets`
+    // Off in the Settings window (its pragma Env), so services don't run twice
+    readonly property bool runsHosts: Quickshell.env("QS_WIDGET_HOSTS") !== "off"
 
     /// Version of the widget contract, not of the shell: minor up when it grows
     /// (a slot, a manifest property, an option type), major up when it breaks
@@ -165,7 +167,7 @@ Singleton {
 
     Variants {
         id: searchFilters
-        model: root.forSlot("searchFilter")
+        model: root.runsHosts ? root.forSlot("searchFilter") : []
         delegate: QtObject {
             id: host
             required property var modelData
@@ -174,13 +176,13 @@ Singleton {
     }
 
     Variants {
-        model: root.forSlot("service")
+        model: root.runsHosts ? root.forSlot("service") : []
         delegate: QtObject {
-            id: host
+            id: serviceHost
             required property var modelData
             property QtObject service
             // Not a binding: whatever the service reads while it is built would rebuild it
-            Component.onCompleted: host.service = root.build(host.modelData, host.modelData.resolve(host.modelData.slotPath("service")), host)
+            Component.onCompleted: serviceHost.service = root.build(serviceHost.modelData, serviceHost.modelData.resolve(serviceHost.modelData.slotPath("service")), serviceHost)
         }
     }
 
@@ -194,6 +196,11 @@ Singleton {
         return widgets.find(w => w.widgetId === widgetId)?.optionValue(key)
     }
 
+    function scanWhenReady() {
+        if (folders.status === FolderListModel.Ready && external.status === FolderListModel.Ready)
+            root.scan()
+    }
+
     function scan() {
         const found = []
         const add = (name, dir, external) => {
@@ -203,7 +210,10 @@ Singleton {
                 return
             }
             const manifest = component.createObject(root, { "dir": dir, "external": external })
-            if (!manifest) return
+            if (!manifest) {
+                ErrorReporter.report(name, component.errorString() || "Manifest.qml failed to build")
+                return
+            }
             // The installer names the folder by id, so a mismatch is a manifest lying about it
             if (external && manifest.widgetId !== name) {
                 ErrorReporter.report(name, `folder ${name} holds widget id ${manifest.widgetId}`)
@@ -212,6 +222,7 @@ Singleton {
             }
             if (found.some(w => w.widgetId === manifest.widgetId)) {
                 ErrorReporter.report(name, `duplicate widget id ${manifest.widgetId}`)
+                manifest.destroy()
                 return
             }
             root.slotProblems(manifest).forEach(p => ErrorReporter.report(manifest.widgetId, p))
@@ -227,7 +238,10 @@ Singleton {
             add(external.get(i, "fileName"), String(external.get(i, "fileUrl")), true)
         }
         found.sort((a, b) => a.widgetId.localeCompare(b.widgetId))
+        const superseded = root.widgets.slice()
         root.widgets = found
+        root._slotCache = ({})
+        superseded.forEach(w => w.destroy())
     }
 
     FolderListModel {
@@ -235,7 +249,7 @@ Singleton {
         folder: Qt.resolvedUrl(".")
         showDirs: true
         showFiles: false
-        onStatusChanged: if (status === FolderListModel.Ready) root.scan()
+        onStatusChanged: root.scanWhenReady()
     }
 
     /// Installed widgets, outside the shell tree so the installer's rsync can't wipe them
@@ -244,7 +258,7 @@ Singleton {
         folder: Qt.resolvedUrl(root.externalDir)
         showDirs: true
         showFiles: false
-        onStatusChanged: if (status === FolderListModel.Ready) root.scan()
+        onStatusChanged: root.scanWhenReady()
     }
 
     /// An updated widget runs the files the engine already loaded, a reload swaps them.
