@@ -70,6 +70,8 @@ Every widget below has its own pictures and options:
   by the color of a bar button, and ring, clipboard and files from its menu.
 - [VPN](https://github.com/Berupor/ii-widget-vpn): NetworkManager profiles and
   tailscale exit nodes, from a button in the bar.
+- [Calendar](https://github.com/Berupor/ii-widget-calendar): events from Google
+  Calendar (gcalcli) in the Calendar tab of the right sidebar, with quick add.
 - [Hello](https://github.com/Berupor/ii-widget-hello): the template to copy when
   writing your own - the contract itself is [docs/widgets.md](../docs/widgets.md).
 
