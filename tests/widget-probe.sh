@@ -111,11 +111,15 @@ cp "$REPO/tests/harness.qml" "$HARNESS"
 CFG=$(mktemp -d /tmp/widget-probe.XXXXXX)
 # Dereferenced: a widget installed as a symlink to its repo would otherwise stay a link,
 # and the rm -rf below would delete the repo through it
-(cd "$HOME/.config" && tar -h --exclude=.git -cf - illogical-impulse) | (cd "$CFG" && tar -xf -)
+(cd "$HOME/.config" && tar -h --exclude=.git -cf - illogical-impulse 2>/dev/null) | (cd "$CFG" && tar -xf -)
+mkdir -p "$CFG/illogical-impulse" # Absent on a fresh machine
 [ -z "$(find "$CFG/illogical-impulse" -type l)" ] || { echo "seeded config still has symlinks: $CFG"; exit 2; }
+# Report target is a closed port: an empty one would mean the production endpoint
+STORE="$HOME/.config/illogical-impulse/widgets.json"
+[ -f "$STORE" ] || { STORE="$CFG/empty.json"; echo '{}' > "$STORE"; }
 jq -c --arg w "$WIDGET" --argjson o "$OPTS" --argjson k "$KEYS" --argjson d "$DEFAULTS" \
-    '.errorReports = "never" | .errorReportsTarget = "" | . * $k | .enabled = ($k.enabled // [$w]) | .options[$w] = ((if $d == 1 then {} else (.options[$w] // {}) end) * $o)' \
-    "$HOME/.config/illogical-impulse/widgets.json" > "$CFG/illogical-impulse/widgets.json"
+    '.errorReports = "never" | .errorReportsTarget = "http://127.0.0.1:9/probe" | . * $k | .enabled = ($k.enabled // [$w]) | .options[$w] = ((if $d == 1 then {} else (.options[$w] // {}) end) * $o)' \
+    "$STORE" > "$CFG/illogical-impulse/widgets.json"
 for name in ${SHARE[@]+"${SHARE[@]}"}; do
     ln -sfn "$HOME/.config/$name" "$CFG/$name"
 done

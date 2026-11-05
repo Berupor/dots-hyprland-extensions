@@ -38,7 +38,7 @@ Singleton {
     // Logs may carry window titles and paths, hence the switch guarding all this
     function argv(widgetId, message) {
         const pipe = `jq -Rs '{widget: env.RW, report: .}' | curl -sf -X POST -H "Content-Type: application/json" -d @- "$RT"`
-        return ["env", `RW=${widgetId}`, `RM=${message}`, `RT=${root.target}`, "bash", "-c", `{ echo "widget: $RW"; echo "$RM"; echo; qs -c ii log 2>/dev/null | tail -100; } | ${pipe}`]
+        return ["env", `RW=${widgetId}`, `RM=${message}`, `RT=${root.target}`, "bash", "-c", `{ echo "widget: $RW"; echo "$RM"; echo; qs log --pid ${Quickshell.processId} 2>/dev/null | tail -100; } | ${pipe}`]
     }
 
     function send(widgetId, message) {

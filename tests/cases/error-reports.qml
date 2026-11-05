@@ -1,4 +1,4 @@
-//@ probe -g 620x200 -s 3500 -K errorReports=always
+//@ probe -g 620x200 -s 3500
 /**
  * Error report settings: the built-in endpoint, and both outcomes of a test send.
  * The sink answers 200 to a POST, the discard port cannot be connected to.
@@ -64,6 +64,7 @@ Item {
         running: true
         interval: 800
         onTriggered: {
+            WidgetsStore.setKey("errorReportsTarget", ""); // Reports are off here, nothing can send to it
             probe.snap = {
                 "host": section.host,
                 "argv": ErrorReporter.argv("test", "hello")
