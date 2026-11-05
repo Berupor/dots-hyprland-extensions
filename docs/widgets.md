@@ -83,6 +83,9 @@ executables of its own.
 
 ## Before publishing
 
+The look is checked by eye against the shell's own surfaces, see
+[widget-design.md](widget-design.md).
+
 `tests/design-lint.sh <your-repo>` and `tests/qml-cases.sh -x <your-repo>` clean,
 a `demo/` scene that doubles as your test and your README screenshot -
 `ii-widget-hello` has the shape of both - and, if your `settingsPage` writes to
