@@ -109,7 +109,19 @@ Item {
     }
 
     function checks() {
+        const writtenByExpanding = WidgetsStore.data.options?.everyOption ?? null;
+        cards.itemAt(3).bodyData.find(o => o.modelData?.key === "sw").item.clicked();
         return [
+            {
+                "name": "expanding a card writes no option",
+                "got": writtenByExpanding,
+                "want": null
+            },
+            {
+                "name": "a click on a switch does",
+                "got": cards.itemAt(3).manifest.optionValue("sw"),
+                "want": false
+            },
             {
                 "name": "the installed widget is marked external",
                 "got": probe.installed?.external ?? null,

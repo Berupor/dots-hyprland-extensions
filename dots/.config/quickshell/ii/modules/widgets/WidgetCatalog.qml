@@ -1,5 +1,6 @@
 pragma Singleton
 import qs.modules.common
+import qs.modules.common.functions
 import Qt.labs.folderlistmodel
 import Quickshell
 import Quickshell.Io
@@ -136,20 +137,66 @@ Singleton {
         return (WidgetsStore.data.unlockHookAllowed ?? []).includes(widgetId)
     }
 
+    /// sha256 of every code file in a widget dir, so a sibling the hook imports counts too. "" on failure
+    function codeHash(manifest, callback) {
+        hashRunner.createObject(root, { "dir": FileUtils.trimFileProtocol(String(manifest.dir)), "done": callback })
+    }
+
+    Component {
+        id: hashRunner
+        Process {
+            id: proc
+            property string dir
+            property var done
+            running: true
+            command: ["bash", "-c", "cd \"$1\" && find . -type f \\( -name '*.qml' -o -name '*.js' -o -name qmldir \\) -not -path './.git/*' -print0 | LC_ALL=C sort -z | xargs -0 -r sha256sum | sha256sum | cut -d' ' -f1", "_", proc.dir]
+            stdout: StdioCollector {
+                onStreamFinished: {
+                    proc.done(text.trim())
+                    proc.destroy()
+                }
+            }
+        }
+    }
+
+    /// Allows the unlockHook of a widget for the code with this hash, an empty hash revokes
+    function setUnlockHookGrant(widgetId, hash) {
+        const allowed = (WidgetsStore.data.unlockHookAllowed ?? []).filter(x => x !== widgetId)
+        const hashes = Object.assign({}, WidgetsStore.data.unlockHookHashes)
+        delete hashes[widgetId]
+        if (hash !== "") {
+            allowed.push(widgetId)
+            hashes[widgetId] = hash
+        }
+        WidgetsStore.setKey("unlockHookAllowed", allowed)
+        WidgetsStore.setKey("unlockHookHashes", hashes)
+    }
+
     /// Hands the accepted login password to each unlockHook once, empty on fingerprint
     function runUnlockHooks(password) {
         if (!password) return
-        for (const manifest of root.forSlot("unlockHook").filter(w => root.unlockHookAllowed(w.widgetId))) {
-            let hook = null
-            try {
-                hook = root.build(manifest, manifest.resolve(manifest.slotPath("unlockHook")))
-                hook?.unlocked(password)
-            } catch (e) {
-                // The message may carry the password, and reports leave the machine
-                ErrorReporter.report(manifest.widgetId, `unlockHook threw ${e.name} at line ${e.lineNumber}`)
-            }
-            hook?.destroy()
+        for (const manifest of root.forSlot("unlockHook").filter(w => root.unlockHookAllowed(w.widgetId)))
+            root.codeHash(manifest, hash => root.runUnlockHook(manifest, hash, password))
+    }
+
+    /// Only for the code that was allowed: anything else loses the grant
+    function runUnlockHook(manifest, hash, password) {
+        const id = manifest.widgetId
+        if (!root.unlockHookAllowed(id)) return
+        if (hash === "" || hash !== WidgetsStore.data.unlockHookHashes?.[id]) {
+            console.warn(`[WidgetCatalog] unlock_hook_grant_dropped widget=${id}`)
+            root.setUnlockHookGrant(id, "")
+            return
         }
+        let hook = null
+        try {
+            hook = root.build(manifest, manifest.resolve(manifest.slotPath("unlockHook")))
+            hook?.unlocked(password)
+        } catch (e) {
+            // The message may carry the password, and reports leave the machine
+            ErrorReporter.report(id, `unlockHook threw ${e.name} at line ${e.lineNumber}`)
+        }
+        hook?.destroy()
     }
 
     /// Results every searchFilter lets through, some of them marked `secret` on the way

@@ -14,7 +14,7 @@ CatalogCard {
     required property var manifest
     readonly property bool widgetEnabled: WidgetCatalog.isEnabled(manifest.widgetId)
     readonly property var drawnOptions: manifest.options.filter(o => o.label) // The rest are values for a settingsPage
-    readonly property bool hasBody: root.drawnOptions.length > 0 || manifest.settingsPage !== "" || root.placements.length > 0 || manifest.external
+    readonly property bool hasBody: root.drawnOptions.length > 0 || manifest.settingsPage !== "" || root.placements.length > 0 || manifest.external || root.hasUnlockHook
     readonly property string jobMessage: WidgetInstaller.job === root.manifest.widgetId ? WidgetInstaller.message : ""
     property bool confirmingRemove: false
 
@@ -38,13 +38,42 @@ CatalogCard {
     readonly property var placements: Object.keys(root.manifest.slots).map(s => root.slotNames[s] ?? s)
 
     readonly property bool hasUnlockHook: root.manifest.slots.unlockHook !== undefined
-    /// Enabled before an update added the slot
-    readonly property bool unlockHookBlocked: root.widgetEnabled && root.hasUnlockHook && !WidgetCatalog.unlockHookAllowed(root.manifest.widgetId)
+    /// Hash of the widget's code the password grant was given for, empty until computed
+    property string hookHash: ""
+    readonly property string grantedHash: WidgetsStore.data.unlockHookHashes?.[root.manifest.widgetId] ?? ""
+    readonly property bool unlockHookGranted: root.hasUnlockHook && WidgetCatalog.unlockHookAllowed(root.manifest.widgetId) && root.hookHash !== "" && root.grantedHash === root.hookHash
+    /// Not allowed, or allowed for other code than what is on disk now
+    readonly property bool unlockHookBlocked: root.widgetEnabled && root.hasUnlockHook && (!WidgetCatalog.unlockHookAllowed(root.manifest.widgetId) || (root.hookHash !== "" && root.grantedHash !== root.hookHash))
+
+    function setUnlockHookGrant(on) {
+        WidgetCatalog.setUnlockHookGrant(root.manifest.widgetId, on ? root.hookHash : "");
+    }
+
+    function rehash() {
+        if (root.hasUnlockHook)
+            WidgetCatalog.codeHash(root.manifest, hash => root.hookHash = hash);
+    }
+
+    /// Option controls also fire for the bound value, so only a real change is written
+    function writeOption(key, value, fallback) {
+        if (value !== (root.manifest.optionValue(key) ?? fallback))
+            WidgetsStore.setOption(root.manifest.widgetId, key, value);
+    }
+
+    Component.onCompleted: root.rehash()
+
+    property Connections updateWatch: Connections {
+        target: WidgetInstaller
+        function onStateChanged() {
+            if (WidgetInstaller.job === root.manifest.widgetId && WidgetInstaller.state === WidgetInstaller.State.Done)
+                root.rehash();
+        }
+    }
 
     /// Subtitle: why it cannot run, or what it does
     readonly property string statusText: {
         if (root.unlockHookBlocked)
-            return Translation.tr("Now asks for your login password: switch off and on to allow");
+            return Translation.tr("Wants your login password: allow it inside");
         if (!root.manifest.supported)
             return Translation.tr("Built for shell %1, this is %2").arg(root.manifest.minShellVersion).arg(WidgetCatalog.shellVersion);
         if (root.manifest.depsMissing.length > 0)
@@ -95,7 +124,7 @@ CatalogCard {
         enabled: root.manifest.usable
         checked: root.widgetEnabled
         onClicked: {
-            WidgetsStore.setEnabled(root.manifest.widgetId, checked, root.hasUnlockHook);
+            WidgetsStore.setEnabled(root.manifest.widgetId, checked);
             root.expanded = checked; // Just switched on, so show what's inside
         }
     }
@@ -111,6 +140,22 @@ CatalogCard {
                 required property string modelData
                 label: modelData
             }
+        }
+    }
+
+    ConfigSwitch {
+        visible: root.hasUnlockHook && root.widgetEnabled
+        enabled: root.hookHash !== ""
+        buttonIcon: "password"
+        text: Translation.tr("Hand my login password to this widget")
+        onClicked: root.setUnlockHookGrant(!root.unlockHookGranted)
+
+        Binding on checked {
+            value: root.unlockHookGranted
+        }
+
+        StyledToolTip {
+            text: Translation.tr("It runs on every unlock and sees the password. A changed widget has to be allowed again")
         }
     }
 
@@ -140,7 +185,7 @@ CatalogCard {
                     buttonIcon: optLoader.modelData.icon ?? ""
                     text: optLoader.modelData.label
                     checked: root.manifest.optionValue(optLoader.modelData.key) ?? false
-                    onCheckedChanged: WidgetsStore.setOption(root.manifest.widgetId, optLoader.modelData.key, checked)
+                    onCheckedChanged: root.writeOption(optLoader.modelData.key, checked, false)
                 }
             }
             Component {
@@ -152,7 +197,7 @@ CatalogCard {
                     from: optLoader.modelData.min ?? 0
                     to: optLoader.modelData.max ?? 100
                     stepSize: optLoader.modelData.step ?? 1
-                    onValueChanged: WidgetsStore.setOption(root.manifest.widgetId, optLoader.modelData.key, value)
+                    onValueChanged: root.writeOption(optLoader.modelData.key, value, 0)
                 }
             }
             Component {
@@ -184,7 +229,7 @@ CatalogCard {
                         color: Appearance.colors.colOnLayer2
                         placeholderText: optLoader.modelData.placeholder ?? ""
                         text: root.manifest.optionValue(optLoader.modelData.key) ?? ""
-                        onTextChanged: WidgetsStore.setOption(root.manifest.widgetId, optLoader.modelData.key, textField.text.trim())
+                        onTextChanged: root.writeOption(optLoader.modelData.key, textField.text.trim(), "")
                     }
                 }
             }
