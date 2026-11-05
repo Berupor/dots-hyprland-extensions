@@ -27,7 +27,7 @@ import Quickshell.Io
  *    on its own option; `regionAction` exposes `available` and perform(path, x, y, w, h);
  *    `unlockHook` exposes unlocked(password), called once per unlock and destroyed right
  *    after, so it hands the work to something that outlives it; runs only if the user
- *    switched the widget on while the slot was there; `searchFilter` exposes
+ *    allowed it on the card for this exact code, an update asks again; `searchFilter` exposes
  *    filter(result), seeing each overview search result (a LauncherSearchResult, clipboard
  *    entries carry `rawValue`) before it is drawn: false drops it, `secret` masks its text;
  *    `service` is a non-visual object built once and kept while the widget is enabled, the
