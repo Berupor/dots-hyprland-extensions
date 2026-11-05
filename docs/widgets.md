@@ -32,6 +32,7 @@ to render, which lands inside the card so it wants `ContentSubsection`, not
 | `catalogView`      | 1.0   | -               | Replaces the whole Widgets settings page.                                                                          |
 | `settingsView`     | 1.0   | -               | Replaces the whole settings window, titlebar included.                                                             |
 | `calendarView`     | 1.6   | -               | Replaces the Calendar tab of the right sidebar's bottom group, about 354x350.                                      |
+| `translatorView`   | 1.12  | -               | Replaces the Translator tab of the left sidebar, which shows while the widget is enabled even with the built-in one off. |
 | `barView`          | 1.9   | -               | Stays loaded and fills the horizontal bar; while its item's `active` is true it replaces the bar content, the bar background stays. False or no widget leaves the built-in bar. |
 | `mediaView`        | 1.10  | -               | Replaces the player cards of the media popup, `mediaControlsWidth` wide; the popup takes the item's implicit height. Players come from `MprisController`. |
 | `quickToggle`      | 1.11  | -               | A `QuickToggleModel` (`name`, `icon`, `toggled`, `statusText`, `mainAction`, `altAction`; `hasMenu` is ignored), drawn as a tile of the android-style quick toggles. The user places it in the grid's edit mode. |
@@ -60,7 +61,7 @@ major up when it breaks. A widget's `minShellVersion` has to match the same
 major and be no newer than the shell's, or its card shows "Built for shell X,
 this is Y" and it does not load. 1.0 is the baseline; 1.1 added `textField`;
 1.2 added `orientations` for the vertical bar; 1.3 added `barGauge` and
-`WidgetSlot.spacingBefore`; 1.4 added `screenOverlay`; 1.5 added `unlockHook`; 1.6 added `calendarView`; 1.7 added `searchFilter`; 1.8 added `service`; 1.9 added `barView`; 1.10 added `mediaView`; 1.11 added `quickToggle`, `notificationFilter`, `lockWidget` and `WidgetCatalog.showOsd`.
+`WidgetSlot.spacingBefore`; 1.4 added `screenOverlay`; 1.5 added `unlockHook`; 1.6 added `calendarView`; 1.7 added `searchFilter`; 1.8 added `service`; 1.9 added `barView`; 1.10 added `mediaView`; 1.11 added `quickToggle`, `notificationFilter`, `lockWidget` and `WidgetCatalog.showOsd`; 1.12 added `translatorView`.
 
 Any slot file can call `WidgetCatalog.showOsd(widgetId, {icon, text, value})` to show
 the shell's OSD pill: `icon` a Material symbol, `value` 0..1 draws the bar and is

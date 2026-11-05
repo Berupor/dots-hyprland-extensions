@@ -14,7 +14,7 @@ Item {
     property int sidebarPadding: 10
     anchors.fill: parent
     property bool aiChatEnabled: Config.options.policies.ai !== 0
-    property bool translatorEnabled: Config.options.sidebar.translator.enable
+    property bool translatorEnabled: Config.options.sidebar.translator.enable || WidgetCatalog.forSlot("translatorView").length > 0
     property bool animeEnabled: Config.options.policies.weeb !== 0
     property bool animeCloset: Config.options.policies.weeb === 2
     property var widgetTabs: WidgetCatalog.forSlot("sidebarLeftTab")
@@ -105,7 +105,7 @@ Item {
         }
         Component {
             id: translator
-            Translator {}
+            TranslatorTab {}
         }
         Component {
             id: anime

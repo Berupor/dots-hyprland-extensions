@@ -32,6 +32,7 @@ CatalogCard {
         "catalogView": Translation.tr("This page"),
         "settingsView": Translation.tr("Settings window"),
         "calendarView": Translation.tr("Sidebar calendar"),
+        "translatorView": Translation.tr("Sidebar translator"),
         "barView": Translation.tr("Bar, while active"),
         "mediaView": Translation.tr("Media popup"),
         "lockWidget": Translation.tr("Lock screen, seen by anyone")
