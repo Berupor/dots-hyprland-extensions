@@ -17,8 +17,7 @@ Item { // Bar content region
     property var brightnessMonitor: Brightness.getMonitorForScreen(screen)
     property real useShortenedForm: (Appearance.sizes.barHellaShortenScreenWidthThreshold >= screen?.width) ? 2 : (Appearance.sizes.barShortenScreenWidthThreshold >= screen?.width) ? 1 : 0
     readonly property int centerSideModuleWidth: (useShortenedForm == 2) ? Appearance.sizes.barCenterSideModuleWidthHellaShortened : (useShortenedForm == 1) ? Appearance.sizes.barCenterSideModuleWidthShortened : Appearance.sizes.barCenterSideModuleWidth
-    // The right group hugs its content instead of matching the left one, so no spare width
-    // piles up next to the clock. The workspaces stay centered via middleSection's offset.
+    // Right group hugs its content, workspaces stay centered by this offset
     readonly property real centerSideModuleOffset: (rightCenterGroup.implicitWidth - leftCenterGroup.implicitWidth) / 2
     readonly property bool widgetViewActive: widgetView.item?.active ?? false
 
@@ -211,8 +210,6 @@ Item { // Bar content region
                 BatteryIndicator {
                     visible: (root.useShortenedForm < 2 && Battery.available)
                     Layout.alignment: Qt.AlignVCenter
-                    // Indicators hug their glyph, the battery pill is filled to its edge:
-                    // matches the gaps the util buttons and the pill make on their own
                     Layout.leftMargin: 12
                 }
             }
