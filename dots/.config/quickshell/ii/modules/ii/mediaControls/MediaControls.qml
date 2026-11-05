@@ -24,6 +24,7 @@ Scope {
     readonly property real widgetHeight: Appearance.sizes.mediaControlsHeight
     property real popupRounding: Appearance.rounding.screenRounding - Appearance.sizes.hyprlandGapsOut + 1
     property list<real> visualizerPoints: []
+    property var knownCovers: ({})
 
     function filterDuplicatePlayers(players) {
         let filtered = [];
@@ -141,6 +142,7 @@ Scope {
                     delegate: PlayerControl {
                         required property MprisPlayer modelData
                         player: modelData
+                        knownCovers: root.knownCovers
                         visualizerPoints: root.visualizerPoints
                         implicitWidth: root.widgetWidth
                         implicitHeight: root.widgetHeight

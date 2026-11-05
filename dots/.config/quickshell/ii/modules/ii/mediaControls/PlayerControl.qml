@@ -19,7 +19,8 @@ Item { // Player instance
     property string artDownloadLocation: Directories.coverArt
     property string artFileName: Qt.md5(artUrl)
     property string artFilePath: `${artDownloadLocation}/${artFileName}`
-    property color artDominantColor: ColorUtils.mix((colorQuantizer?.colors[0] ?? Appearance.colors.colPrimary), Appearance.colors.colPrimaryContainer, 0.8) || Appearance.m3colors.m3secondaryContainer
+    property var knownCovers: ({}) // url -> quantized color, kept by the owner across popup reopens
+    property color artDominantColor: ColorUtils.mix((colorQuantizer?.colors[0] ?? knownCovers[artUrl] ?? Appearance.colors.colPrimary), Appearance.colors.colPrimaryContainer, 0.8) || Appearance.m3colors.m3secondaryContainer
     property bool downloaded: false
     property list<real> visualizerPoints: []
     property real maxVisualizerValue: 1000 // Max value in the data points
@@ -65,8 +66,13 @@ Item { // Player instance
             return;
         }
 
+        if (root.knownCovers[root.artUrl] !== undefined) {
+            root.downloaded = true
+            return;
+        }
+
         // Binding does not work in Process
-        coverArtDownloader.targetFile = root.artUrl 
+        coverArtDownloader.targetFile = root.artUrl
         coverArtDownloader.artFilePath = root.artFilePath
         // Download
         root.downloaded = false
@@ -88,6 +94,10 @@ Item { // Player instance
         source: root.displayedArtFilePath
         depth: 0 // 2^0 = 1 color
         rescaleSize: 1 // Rescale to 1x1 pixel for faster processing
+        onColorsChanged: {
+            if (colors.length > 0 && root.downloaded)
+                root.knownCovers[root.artUrl] = colors[0]
+        }
     }
 
     property QtObject blendedColors: AdaptedMaterialScheme {
