@@ -11,6 +11,7 @@ Item {
     required property string name
     property bool rotateIcon: false
     property bool scaleIcon: false
+    property bool showValue: true
     property alias from: valueProgressBar.from
     property alias to: valueProgressBar.to
 
@@ -91,12 +92,14 @@ Item {
                         color: Appearance.colors.colOnLayer0
                         font.pixelSize: Appearance.font.pixelSize.small
                         Layout.fillWidth: false
+                        visible: root.showValue
                         text: Math.round(root.value * 100)
                     }
                 }
                 
                 StyledProgressBar {
                     id: valueProgressBar
+                    visible: root.showValue
                     Layout.fillWidth: true
                     value: root.value
                 }

@@ -31,7 +31,10 @@ import Quickshell.Io
  *    filter(result), seeing each overview search result (a LauncherSearchResult, clipboard
  *    entries carry `rawValue`) before it is drawn: false drops it, `secret` masks its text;
  *    `service` is a non-visual object built once and kept while the widget is enabled, the
- *    home of an IpcHandler or a Timer
+ *    home of an IpcHandler or a Timer; `quickToggle` is a QuickToggleModel drawn as a
+ *    tile of the android-style quick toggles, placed by the user in edit mode.
+ *    Any slot file may call WidgetCatalog.showOsd(widgetId, {icon, text, value}) for
+ *    the shell's OSD pill, value 0..1 optional
  * 7. `minShellVersion` is the contract you built against (WidgetCatalog.shellVersion).
  *    A widget asking for a newer one, or for another major, is shown but not loaded.
  *    Bump your own `version` on every release: the updater reports it

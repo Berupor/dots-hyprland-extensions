@@ -22,7 +22,7 @@ Singleton {
 
     /// Version of the widget contract, not of the shell: minor up when it grows
     /// (a slot, a manifest property, an option type), major up when it breaks
-    readonly property string shellVersion: "1.10"
+    readonly property string shellVersion: "1.11"
 
     /// Known slots and the fields their entry needs beyond `path`. A bare-path
     /// entry is only valid when the list is empty
@@ -40,6 +40,7 @@ Singleton {
         "calendarView": [],
         "barView": [],
         "mediaView": [],
+        "quickToggle": [],
         "regionAction": ["name"],
         "sidebarLeftTab": ["name", "icon"],
         "sidebarRightTab": ["name", "icon"]
@@ -241,6 +242,17 @@ Singleton {
 
     function option(widgetId, key) {
         return widgets.find(w => w.widgetId === widgetId)?.optionValue(key)
+    }
+
+    signal osdRequested(var spec)
+    property var osd: ({})
+
+    /// An OSD popup from an enabled widget: spec is {icon, text, value}, value 0-1 or absent
+    function showOsd(widgetId, spec) {
+        if (!root.isEnabled(widgetId) || !spec?.icon)
+            return
+        root.osd = { "widgetId": widgetId, "icon": String(spec.icon), "text": String(spec.text ?? ""), "value": spec.value ?? null }
+        root.osdRequested(spec)
     }
 
     function scanWhenReady() {

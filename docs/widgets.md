@@ -26,7 +26,7 @@ to render, which lands inside the card so it wants `ContentSubsection`, not
 | `barUtilButton`    | 1.0   | -               | Bar utility button. Horizontal bar only - the vertical one has no utility group.                                   |
 | `backgroundWidget` | 1.0   | -               | Desktop background layer, stays loaded while enabled - gate side effects on your own option.                       |
 | `screenOverlay`    | 1.4   | -               | Click-through layer above windows, loaded once per screen and handed `screen`. Mapped only while an item's `shown` is true; size to `screen.width` x `screen.height`. |
-| `unlockHook`       | 1.5   | -               | Runs once per password unlock of the lock screen: `unlocked(password)` gets the login password PAM accepted, then the object is destroyed, so hand the work to something that outlives it (a singleton of your own, `Quickshell.execDetached`). Skipped on fingerprint unlock, and for a widget enabled before an update added the slot until it is switched off and on. |
+| `unlockHook`       | 1.5   | -               | Runs once per password unlock of the lock screen: `unlocked(password)` gets the login password PAM accepted, then the object is destroyed, so hand the work to something that outlives it (a singleton of your own, `Quickshell.execDetached`). Skipped on fingerprint unlock, and until the user allows it on the card for this exact code; an update asks again. |
 | `searchFilter`     | 1.7   | -               | Stays loaded, `filter(result)` sees each overview search result before it is drawn. Returning `false` drops it; setting `secret` masks its text and keeps Tab from pasting it into the search field. Clipboard entries carry `rawValue`. |
 | `service`          | 1.8   | -               | Non-visual object, built once and kept while the widget is enabled, destroyed when it is switched off. The place for an `IpcHandler`, a `Timer` or a `Process` that runs without a drawn surface. |
 | `catalogView`      | 1.0   | -               | Replaces the whole Widgets settings page.                                                                          |
@@ -34,6 +34,7 @@ to render, which lands inside the card so it wants `ContentSubsection`, not
 | `calendarView`     | 1.6   | -               | Replaces the Calendar tab of the right sidebar's bottom group, about 354x350.                                      |
 | `barView`          | 1.9   | -               | Stays loaded and fills the horizontal bar; while its item's `active` is true it replaces the bar content, the bar background stays. False or no widget leaves the built-in bar. |
 | `mediaView`        | 1.10  | -               | Replaces the player cards of the media popup, `mediaControlsWidth` wide; the popup takes the item's implicit height. Players come from `MprisController`. |
+| `quickToggle`      | 1.11  | -               | A `QuickToggleModel` (`name`, `icon`, `toggled`, `statusText`, `mainAction`, `altAction`; `hasMenu` is ignored), drawn as a tile of the android-style quick toggles. The user places it in the grid's edit mode. |
 | `regionAction`     | 1.0   | `name`          | Offered during region selection (ipc `region widget <name>`). Exposes `available` and `perform(path, x, y, w, h)`. |
 | `sidebarLeftTab`   | 1.0   | `name`, `icon`  | Tab in the left sidebar.                                                                                           |
 | `sidebarRightTab`  | 1.0   | `name`, `icon`  | Tab in the right sidebar.                                                                                          |
@@ -57,7 +58,12 @@ major up when it breaks. A widget's `minShellVersion` has to match the same
 major and be no newer than the shell's, or its card shows "Built for shell X,
 this is Y" and it does not load. 1.0 is the baseline; 1.1 added `textField`;
 1.2 added `orientations` for the vertical bar; 1.3 added `barGauge` and
-`WidgetSlot.spacingBefore`; 1.4 added `screenOverlay`; 1.5 added `unlockHook`; 1.6 added `calendarView`; 1.7 added `searchFilter`; 1.8 added `service`; 1.9 added `barView`; 1.10 added `mediaView`.
+`WidgetSlot.spacingBefore`; 1.4 added `screenOverlay`; 1.5 added `unlockHook`; 1.6 added `calendarView`; 1.7 added `searchFilter`; 1.8 added `service`; 1.9 added `barView`; 1.10 added `mediaView`; 1.11 added `quickToggle` and `WidgetCatalog.showOsd`.
+
+Any slot file can call `WidgetCatalog.showOsd(widgetId, {icon, text, value})` to show
+the shell's OSD pill: `icon` a Material symbol, `value` 0..1 draws the bar and is
+optional. It replaces whatever OSD is up and uses the shell's timeout; a disabled
+widget's call is dropped.
 
 ## External widgets
 

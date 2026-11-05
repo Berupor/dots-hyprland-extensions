@@ -2,6 +2,7 @@ import qs
 import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
+import qs.modules.widgets
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -91,6 +92,8 @@ Scope {
             root.triggerOsd();
         }
     }
+
+    WidgetOsdBridge { osd: root }
 
     Loader {
         id: osdLoader

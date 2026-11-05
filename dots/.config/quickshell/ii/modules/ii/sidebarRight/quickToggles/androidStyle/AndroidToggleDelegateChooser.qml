@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
+import qs.modules.widgets
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -249,6 +250,20 @@ DelegateChooser {
     } }
 
     DelegateChoice { roleValue: "screenSnip"; AndroidScreenSnipToggle {
+        required property int index
+        required property var modelData
+        buttonIndex: root.startingIndex + index
+        buttonData: modelData
+        editMode: root.editMode
+        expandedSize: modelData.size > 1
+        baseCellWidth: root.baseCellWidth
+        baseCellHeight: root.baseCellHeight
+        cellSpacing: root.spacing
+        cellSize: modelData.size
+    } }
+
+    // Catch-all: widget:<id>
+    DelegateChoice { WidgetQuickToggle {
         required property int index
         required property var modelData
         buttonIndex: root.startingIndex + index

@@ -18,7 +18,8 @@ WidgetManifest {
         "unlockHook": "HelloUnlock.qml",
         "searchFilter": "HelloFilter.qml",
         "service": "HelloService.qml",
-        "barView": "HelloBar.qml"
+        "barView": "HelloBar.qml",
+        "quickToggle": "Toggle.qml"
     })
     options: [
         {
