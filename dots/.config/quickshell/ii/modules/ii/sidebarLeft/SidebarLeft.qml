@@ -117,6 +117,7 @@ Scope { // Scope
             onVisibleChanged: {
                 if (visible) {
                     GlobalFocusGrab.addDismissable(panelWindow);
+                    root.sidebarContent.focusActiveItem();
                 } else {
                     GlobalFocusGrab.removeDismissable(panelWindow);
                 }
