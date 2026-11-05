@@ -1,11 +1,14 @@
-//@ probe hello -x tests/fixtures/hello -g 100x40 -s 3000
+//@ probe hello -x tests/fixtures/hello -g 100x40 -s 4000
 /**
  * The unlockHook slot: the accepted password reaches each hook allowed for its current
  * code once, a fingerprint unlock hands nothing, switching on is not consent, and a hook
- * whose code changed after the grant gets nothing and loses it.
+ * whose code changed after the grant gets nothing and loses it. Code is any file in the
+ * widget dir, a script the hook hands the password to included.
  */
 import qs.modules.widgets
+import qs.modules.common.functions
 import QtQuick
+import Quickshell.Io
 
 Item {
     id: probe
@@ -59,8 +62,22 @@ Item {
         },
         () => {
             probe.log.afterReenable = [probe.unlocks(), probe.allowed()];
-        }
+            probe.addFile("helper.py");
+        },
+        () => WidgetCatalog.codeHash(probe.manifest, hash => probe.log.withScript = hash),
+        () => probe.addFile("__pycache__/helper.cpython-313.pyc"),
+        () => WidgetCatalog.codeHash(probe.manifest, hash => probe.log.withBytecode = hash)
     ]
+
+    /// Into the probe's copy of the fixture, not the repo
+    function addFile(name) {
+        writer.command = ["sh", "-c", 'mkdir -p "$(dirname "$1/$2")" && echo changed > "$1/$2"', "_", FileUtils.trimFileProtocol(String(probe.manifest.dir)), name];
+        writer.running = true;
+    }
+
+    Process {
+        id: writer
+    }
 
     function checks() {
         return [
@@ -118,6 +135,16 @@ Item {
                 "name": "switching off and on drops the permission",
                 "got": probe.log.afterReenable,
                 "want": [["hunter2", "regranted"], false]
+            },
+            {
+                "name": "a script added next to the hook changes the code hash",
+                "got": /^[0-9a-f]{64}$/.test(probe.log.withScript ?? "") && probe.log.withScript !== probe.card?.hookHash,
+                "want": true
+            },
+            {
+                "name": "a bytecode cache does not",
+                "got": probe.log.withBytecode === probe.log.withScript,
+                "want": true
             }
         ];
     }

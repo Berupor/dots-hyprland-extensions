@@ -138,7 +138,8 @@ Singleton {
         return (WidgetsStore.data.unlockHookAllowed ?? []).includes(widgetId)
     }
 
-    /// sha256 of every code file in a widget dir, so a sibling the hook imports counts too. "" on failure
+    /// sha256 of every file in a widget dir, so a script the hook runs counts too, symlinks
+    /// by target; bytecode caches left out, they change without an update. "" on failure
     function codeHash(manifest, callback) {
         hashRunner.createObject(root, { "dir": FileUtils.trimFileProtocol(String(manifest.dir)), "done": callback })
     }
@@ -150,7 +151,7 @@ Singleton {
             property string dir
             property var done
             running: true
-            command: ["bash", "-c", "cd \"$1\" && find . -type f \\( -name '*.qml' -o -name '*.js' -o -name qmldir \\) -not -path './.git/*' -print0 | LC_ALL=C sort -z | xargs -0 -r sha256sum | sha256sum | cut -d' ' -f1", "_", proc.dir]
+            command: ["bash", "-c", "cd \"$1\" && find -L . -type f -not -path './.git/*' -not -path '*/__pycache__/*' -print0 | LC_ALL=C sort -z | xargs -0 -r sha256sum | sha256sum | cut -d' ' -f1", "_", proc.dir]
             stdout: StdioCollector {
                 onStreamFinished: {
                     proc.done(text.trim())
