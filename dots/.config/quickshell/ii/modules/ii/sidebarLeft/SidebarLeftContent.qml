@@ -17,12 +17,14 @@ Item {
     property bool translatorEnabled: Config.options.sidebar.translator.enable
     property bool animeEnabled: Config.options.policies.weeb !== 0
     property bool animeCloset: Config.options.policies.weeb === 2
-    property var catalogTabs: WidgetCatalog.forSlot("sidebarLeftTab")
+    property var widgetTabs: WidgetCatalog.forSlot("sidebarLeftTab")
+        .map(w => ({"manifest": w, "page": WidgetCatalog.build(w, w.resolve(w.slotPath("sidebarLeftTab")), null)}))
+        .filter(t => t.page)
     property var tabButtonList: [
         ...(root.aiChatEnabled ? [{"icon": "neurology", "name": Translation.tr("Intelligence")}] : []),
         ...(root.translatorEnabled ? [{"icon": "translate", "name": Translation.tr("Translator")}] : []),
         ...((root.animeEnabled && !root.animeCloset) ? [{"icon": "bookmark_heart", "name": Translation.tr("Anime")}] : []),
-        ...root.catalogTabs.map(w => ({"icon": w.slots.sidebarLeftTab.icon, "name": w.slots.sidebarLeftTab.name}))
+        ...root.widgetTabs.map(t => ({"icon": t.manifest.slots.sidebarLeftTab.icon, "name": t.manifest.slots.sidebarLeftTab.name}))
     ]
     property int tabCount: swipeView.count
 
@@ -89,9 +91,10 @@ Item {
                 contentChildren: [
                     ...(root.aiChatEnabled ? [aiChat.createObject()] : []),
                     ...(root.translatorEnabled ? [translator.createObject()] : []),
-                    ...((root.tabButtonList.length === 0 || (!root.aiChatEnabled && !root.translatorEnabled && root.catalogTabs.length === 0 && root.animeCloset)) ? [placeholder.createObject()] : []),
-                    ...(root.animeEnabled ? [anime.createObject()] : []),
-                    ...WidgetCatalog.itemsFor("sidebarLeftTab"),
+                    ...(root.tabButtonList.length === 0 ? [placeholder.createObject()] : []),
+                    ...((root.animeEnabled && !root.animeCloset) ? [anime.createObject()] : []),
+                    ...root.widgetTabs.map(t => t.page),
+                    ...(root.animeCloset ? [anime.createObject()] : []), // Swipe only, no button
                 ]
             }
         }
