@@ -8,8 +8,8 @@
 #   tests/widget-probe.sh [<widget>] -f modules/widgets/foo/Bar.qml [flags]
 #
 #   -o key=value  widget option for this run (json value, else string)
-#   -K key=value  ditto, but a top-level widgets.json key: error report settings
-#                 and anything else that is not per-widget. The report target is
+#   -K key=value  ditto, but a top-level widgets.json key: error report settings,
+#                 `enabled` for a page with several widgets on. The report target is
 #                 blanked for every run, so probes never ship reports anywhere
 #   -p prop=value ditto, set on the loaded item after load: hover states,
 #                 model stubs, anything the slot exposes
@@ -114,7 +114,7 @@ CFG=$(mktemp -d /tmp/widget-probe.XXXXXX)
 (cd "$HOME/.config" && tar -h --exclude=.git -cf - illogical-impulse) | (cd "$CFG" && tar -xf -)
 [ -z "$(find "$CFG/illogical-impulse" -type l)" ] || { echo "seeded config still has symlinks: $CFG"; exit 2; }
 jq -c --arg w "$WIDGET" --argjson o "$OPTS" --argjson k "$KEYS" --argjson d "$DEFAULTS" \
-    '.errorReports = "never" | .errorReportsTarget = "" | . * $k | .enabled = [$w] | .options[$w] = ((if $d == 1 then {} else (.options[$w] // {}) end) * $o)' \
+    '.errorReports = "never" | .errorReportsTarget = "" | . * $k | .enabled = ($k.enabled // [$w]) | .options[$w] = ((if $d == 1 then {} else (.options[$w] // {}) end) * $o)' \
     "$HOME/.config/illogical-impulse/widgets.json" > "$CFG/illogical-impulse/widgets.json"
 for name in ${SHARE[@]+"${SHARE[@]}"}; do
     ln -sfn "$HOME/.config/$name" "$CFG/$name"
