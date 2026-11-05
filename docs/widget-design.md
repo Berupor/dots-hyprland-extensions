@@ -83,3 +83,8 @@ neighbours, that is the bug.
 
 [`ii-widget-player`](https://github.com/Berupor/ii-widget-player) is a popup
 built this way against its upstream host, `PlayerControl.qml`.
+[`ii-widget-vpn`](https://github.com/Berupor/ii-widget-vpn) (`VpnMenu.qml`, a
+bar popup of rows and chips) and
+[`ii-widget-peripheral-battery`](https://github.com/Berupor/ii-widget-peripheral-battery)
+(`PeripheralBatteryTab.qml`, a sidebar tab of cards, with empty and single
+scenes in `demo/`) follow the color and size rules.
