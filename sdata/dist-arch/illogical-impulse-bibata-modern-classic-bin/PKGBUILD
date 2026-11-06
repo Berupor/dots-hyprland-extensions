@@ -1,7 +1,7 @@
 groups=(illogical-impulse)
 pkgname=illogical-impulse-bibata-modern-classic-bin
 pkgver=2.0.6
-pkgrel=2
+pkgrel=3
 pkgdesc="Material Based Cursor Theme, installed for illogical-impulse dotfiles"
 arch=('any')
 url="https://github.com/ful1e5/Bibata_Cursor"
@@ -10,7 +10,7 @@ conflicts=("bibata-cursor-theme" "bibata-cursor-theme-bin")
 options=('!strip')
 _variant=Bibata-Modern-Classic
 source=("${pkgname%-bin}-$pkgver.tar.xz::$url/releases/download/v$pkgver/$_variant.tar.xz")
-sha256sums=('SKIP')
+sha256sums=('4cfe5256374d7a465e05d6590dbc10745dc9d362bf955eaa2ac79b4070b0f3aa')
 
 package() {
   install -dm755 "$pkgdir/usr/share/icons"
