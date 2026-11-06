@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 """Push generated Material colors into a Vivaldi user theme.
 
-Live-patches a running Vivaldi over the DevTools protocol (needs
---remote-debugging-port in ~/.config/vivaldi-stable.conf); falls back to
-editing Preferences when the browser is not running.
+Edits Preferences when the browser is not running - that is the normal
+path, and the ~/.local/bin/vivaldi wrapper calls this script right before
+launching, so a wallpaper change lands on the next browser start.
+
+Live-patching a running Vivaldi over the DevTools protocol still works, but
+needs --remote-debugging-port open permanently, and any local process can
+then drive the browser: cookies, sessions, actions past 2FA. Not worth it
+for a colour scheme, so the flag is deliberately absent.
 """
 
 import argparse
@@ -240,8 +245,8 @@ def main():
         try:
             result = push_live(args.port, patch, args.id, args.name)
         except (OSError, ValueError) as e:
-            log(f"live push failed ({e}); add --remote-debugging-port={args.port} "
-                f"to {CONFIG}/vivaldi-stable.conf and restart Vivaldi")
+            log(f"live push unavailable ({e}); colors will be applied by the "
+                f"~/.local/bin/vivaldi wrapper on the next browser start")
             return 0
     else:
         result = push_file(args.profile, patch, args.id, args.name)
