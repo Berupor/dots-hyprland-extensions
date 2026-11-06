@@ -32,6 +32,7 @@ HUE_THRESHOLD = 15       # tdesktop ColorizerFrom()
 LIGHTNESS_MIN = 64
 LIGHTNESS_MAX = 160
 CONTRAST_ENOUGH = 64
+PASTEL_SAT = 0.35        # accent saturation scale, 1 keeps the Material color
 NEUTRAL_SAT = 140        # HSV saturation below this, near the base hue, is a gray
 NEUTRAL_HUE_SPAN = 25
 
@@ -177,7 +178,8 @@ def generate(base_text, base_accent, colors):
     # tdesktop fills its accent areas with light text, so take the darker role
     accent = min((parse_hex(colors[r])[0] for r in ("primary", "primary_container")),
                  key=lambda c: to_hls(c)[1])
-    colorizer = Colorizer(base_accent, accent)
+    h, l, s = to_hls(accent)
+    colorizer = Colorizer(base_accent, from_hls(h, l, s * PASTEL_SAT))
     neutrals = Neutrals(
         base_accent,
         parse_hex(literal["windowBg"])[0],
